@@ -1,0 +1,15 @@
+# docker compose up --build -d
+# docker exec -it bf bash
+version: "3.9"
+services:
+  bf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/bluefin
+    stdin_open: true
+    tty: true
+    working_dir: /bluefin
+    image: bluefin:latest
+    container_name: bf
