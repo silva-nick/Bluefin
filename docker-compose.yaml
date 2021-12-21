@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./:/bluefin
+      - ./:/usr/src/bluefin/
     stdin_open: true
     tty: true
-    working_dir: /bluefin
+    working_dir: /usr/src/bluefin/build/
     image: bluefin:latest
     container_name: bf
