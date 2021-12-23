@@ -11,7 +11,7 @@ bool isASCIIDigit(char c) {
 bool isASCIILetterOrDigit(char c) {
   return isASCIILetter(c) || isASCIIDigit(c);
 }
-bool isStrType(const std::string str, bool(*charType)(char)) {
+bool isStrType(const std::string str, bool (*charType)(char)) {
   for (char c : str) {
     if (!charType(c)) {
       return false;
@@ -22,13 +22,13 @@ bool isStrType(const std::string str, bool(*charType)(char)) {
 } // namespace
 
 Token::Token(TokenType type, char value) {
-    this->type = type;
-    this->value = value;
+  this->type = type;
+  this->value = value;
 }
 
 Token::Token() {
-    this->type = TokenType::END;
-    this->value = '\0';
+  this->type = TokenType::END;
+  this->value = '\0';
 }
 
 std::string Token::toString() {
@@ -36,43 +36,42 @@ std::string Token::toString() {
 }
 
 std::string Token::getTokenTypeString() {
-    return TokenTypeStrings[(int)this->type];
+  return TokenTypeStrings[(int)this->type];
 }
 
 Interpreter::Interpreter(std::string expr) {
-    this->expr = expr;
-    this->tokenStart_ = 0;
-    this->tokenEnd_ = 0;
-    this->currToken_ = Token();
+  this->expr = expr;
+  this->tokenStart_ = 0;
+  this->tokenEnd_ = 0;
+  this->currToken_ = Token();
 }
 
 bool Interpreter::hasMoreTokens() {
-    return this->tokenStart_ < expr.length();
+  return this->tokenStart_ < expr.length();
 }
 
 void Interpreter::consume(TokenType type) {
-  assert(type==this->currToken_.type);
+  assert(type == this->currToken_.type);
   this->currToken_ = this->nextToken();
 }
 
 Token Interpreter::nextToken() {
-    if (!hasMoreTokens()) {
-        return Token();
-    }
-
-    char currChar = this->expr[tokenStart_];
-    this->tokenStart_++;
-
-
-    if (isASCIIDigit(currChar)) {
-        return Token(TokenType::INTEGER, currChar);
-    }
-
-    if (currChar == '+') {
-        return Token(TokenType::PLUS, currChar);
-    }
-
+  if (!hasMoreTokens()) {
     return Token();
+  }
+
+  char currChar = this->expr[tokenStart_];
+  this->tokenStart_++;
+
+  if (isASCIIDigit(currChar)) {
+    return Token(TokenType::INTEGER, currChar);
+  }
+
+  if (currChar == '+') {
+    return Token(TokenType::PLUS, currChar);
+  }
+
+  return Token();
 }
 
 int Interpreter::parse() {
