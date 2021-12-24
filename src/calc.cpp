@@ -90,19 +90,26 @@ Token Interpreter::nextToken() {
 int Interpreter::parse() {
   this->currToken_ = this->nextToken();
   Token lhs = this->currToken_;
-  printf("lhs %s\n", lhs.toString().c_str());
+  // printf("lhs %s\n", lhs.toString().c_str());
   this->consume(TokenType::INTEGER);
 
   Token op = this->currToken_;
-  printf("op %s\n", op.toString().c_str());
-  this->consume(TokenType::PLUS);
+  // printf("op %s\n", op.toString().c_str());
+  bool plus = true;
+  if (op.type == TokenType::PLUS) {
+    this->consume(TokenType::PLUS);
+  } else {
+    this->consume(TokenType::MINUS);
+    plus = false;
+  }
 
   Token rhs = this->currToken_;
+  // printf("rhs %s\n", rhs.toString().c_str());
   this->consume(TokenType::INTEGER);
 
   assert(this->nextToken().type == TokenType::END);
 
-  return std::stoi(rhs.value) + std::stoi(lhs.value);
+  return std::stoi(lhs.value) + std::stoi(rhs.value) * (plus ? 1 : -1);
 }
 
 } // namespace bluefin
