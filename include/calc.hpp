@@ -5,15 +5,15 @@
 
 namespace bluefin {
 
-enum class TokenType : int { END=0, INTEGER, PLUS };
+enum class TokenType : int { END=0, INTEGER, PLUS, MINUS };
 static constexpr const char* const TokenTypeStrings[3] = {"END", "INTEGER", "PLUS"};
 
 class Token {
 public:
-    Token(TokenType type, char value);
+    Token(TokenType type, std::string value);
     Token();
     TokenType type;
-    char value;
+    std::string value;
     std::string toString();
 private:
     std::string getTokenTypeString();

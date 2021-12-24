@@ -11,6 +11,6 @@ int test_calc(std::string expr) {
 
 int main(int argc, char *argv[]) {
   printf("starting program execution: \n");
-  printf("test_calc = %d\n", test_calc("1+1"));
+  printf("test_calc = %d\n", test_calc("12 +1   "));
   return 0;
 }

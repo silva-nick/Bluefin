@@ -13,20 +13,13 @@ docker exec -ti os bash
 
 _Then to build._
 ```bash
+# Configure the build
 CC=gcc CXX=g++ cmake ..
 cmake --build build --target bluefin
 ```
 
-
-**`Build test`**
-
+**`Debug`**
 ```bash
-mkdir build_test
-cd build_test
-cmake --build build --target test
-```
-
-_Then to run:_
-```bash
-...
+cmake -S . -B build/Debug -D CMAKE_BUILD_TYPE=Debug
+cmake --build build/Debug --target test
 ```

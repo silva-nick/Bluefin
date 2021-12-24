@@ -21,14 +21,14 @@ bool isStrType(const std::string str, bool (*charType)(char)) {
 }
 } // namespace
 
-Token::Token(TokenType type, char value) {
+Token::Token(TokenType type, std::string value) {
   this->type = type;
   this->value = value;
 }
 
 Token::Token() {
   this->type = TokenType::END;
-  this->value = '\0';
+  this->value = "";
 }
 
 std::string Token::toString() {
@@ -60,26 +60,41 @@ Token Interpreter::nextToken() {
     return Token();
   }
 
-  char currChar = this->expr[tokenStart_];
+  std::string currVal = std::string(1, this->expr[this->tokenStart_]);
   this->tokenStart_++;
 
-  if (isASCIIDigit(currChar)) {
-    return Token(TokenType::INTEGER, currChar);
+  if (currVal[0] == ' ') {
+    return nextToken();
   }
 
-  if (currChar == '+') {
-    return Token(TokenType::PLUS, currChar);
+  if (isASCIIDigit(currVal[0])) {
+    char nextChar;
+    while (isASCIIDigit((nextChar = this->expr[this->tokenStart_]))) {
+      this->tokenStart_++;
+      currVal.push_back(nextChar);
+    }
+    return Token(TokenType::INTEGER, currVal);
   }
 
+  if (currVal[0] == '+') {
+    return Token(TokenType::PLUS, currVal);
+  }
+
+  if (currVal[0] == '-') {
+    return Token(TokenType::MINUS, currVal);
+  }
+  printf("test\n");
   return Token();
 }
 
 int Interpreter::parse() {
   this->currToken_ = this->nextToken();
   Token lhs = this->currToken_;
+  printf("lhs %s\n", lhs.toString().c_str());
   this->consume(TokenType::INTEGER);
 
   Token op = this->currToken_;
+  printf("op %s\n", op.toString().c_str());
   this->consume(TokenType::PLUS);
 
   Token rhs = this->currToken_;
@@ -87,7 +102,7 @@ int Interpreter::parse() {
 
   assert(this->nextToken().type == TokenType::END);
 
-  return rhs.value + lhs.value - '0' - '0';
+  return std::stoi(rhs.value) + std::stoi(lhs.value);
 }
 
 } // namespace bluefin
