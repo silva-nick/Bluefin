@@ -26,4 +26,4 @@ macro(add_unittest test_name test_files test_lib)
     set_target_properties(${test_name} PROPERTIES FOLDER tests)
 endmacro()
 
-add_unittest(quicktest CalculatorTest.cpp calc)
+add_unittest(CalcTest CalculatorTest.cpp calc)
