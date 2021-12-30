@@ -114,52 +114,57 @@ Token Interpreter::nextToken() {
 
 int Interpreter::parse() {
   this->currToken_ = this->nextToken();
-  Token lhs = this->currToken_;
-  printf("lhs %s\n", lhs.toString().c_str());
+  Token integer = this->currToken_;
+  printf("first %s\n", integer.toString().c_str());
   this->consume(TokenType::INTEGER);
 
+  int res = std::stoi(integer.value);
   Token op = this->currToken_;
-  printf("op %s\n", op.toString().c_str());
-  switch (op.type) {
-    case TokenType::PLUS:
-      this->consume(TokenType::PLUS);
-      break;
-    case TokenType::MINUS:
-      this->consume(TokenType::MINUS);
-      break;
-    case TokenType::MULT:
-      this->consume(TokenType::MULT);
-      break;
-    case TokenType::DIV:
-      this->consume(TokenType::DIV);
-      break;
-    default:
-      break;
-  }
 
-  Token rhs = this->currToken_;
-  printf("rhs %s\n", rhs.toString().c_str());
-  this->consume(TokenType::INTEGER);
+  while (op.type != TokenType::END) {
+    printf("op %s\n", op.toString().c_str());
+    switch (op.type) {
+      case TokenType::PLUS:
+        this->consume(TokenType::PLUS);
+        break;
+      case TokenType::MINUS:
+        this->consume(TokenType::MINUS);
+        break;
+      case TokenType::MULT:
+        this->consume(TokenType::MULT);
+        break;
+      case TokenType::DIV:
+        this->consume(TokenType::DIV);
+        break;
+      default:
+        break;
+    }
+
+    integer = this->currToken_;
+    printf("othger %s\n", integer.toString().c_str());
+    this->consume(TokenType::INTEGER);
+
+    switch (op.type) {
+      case TokenType::PLUS:
+        res += std::stoi(integer.value);
+        break;
+      case TokenType::MINUS:
+        res -= std::stoi(integer.value);
+        break;
+      case TokenType::MULT:
+        res *= std::stoi(integer.value);
+        break;
+      case TokenType::DIV:
+        res /= std::stoi(integer.value);
+        break;
+      default:
+        break;
+    }
+
+    op = this->currToken_;
+  }
 
   assert(this->nextToken().type == TokenType::END);
-
-  int res;
-  switch (op.type) {
-    case TokenType::PLUS:
-      res = std::stoi(lhs.value) + std::stoi(rhs.value);
-      break;
-    case TokenType::MINUS:
-      res = std::stoi(lhs.value) - std::stoi(rhs.value);
-      break;
-    case TokenType::MULT:
-      res = std::stoi(lhs.value) * std::stoi(rhs.value);
-      break;
-    case TokenType::DIV:
-      res = std::stoi(lhs.value) / std::stoi(rhs.value);
-      break;
-    default:
-      break;
-  }
   return res;
 }
 
