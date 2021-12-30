@@ -42,12 +42,8 @@ std::string Token::getTokenTypeString() {
 Interpreter::Interpreter(std::string expr) {
   this->expr = expr;
   this->tokenStart_ = 0;
-  this->tokenEnd_ = 0;
+  this->tokenLen_ = 1;
   this->currToken_ = Token();
-}
-
-bool Interpreter::hasMoreTokens() {
-  return this->tokenStart_ < expr.length();
 }
 
 void Interpreter::consume(TokenType type) {
@@ -55,46 +51,67 @@ void Interpreter::consume(TokenType type) {
   this->currToken_ = this->nextToken();
 }
 
-Token Interpreter::nextToken() {
-  if (!hasMoreTokens()) {
-    return Token();
-  }
+Token Interpreter::nextInteger() {
+  while (tokenHasMoreChars() &&
+         isASCIIDigit(this->expr[this->tokenStart_ + this->tokenLen_]))
+    this->tokenLen_++;
+  return Token(TokenType::INTEGER, getCurrentTokenString());
+}
 
-  std::string currVal = std::string(1, this->expr[this->tokenStart_]);
-  this->tokenStart_++;
+bool Interpreter::hasMoreChars() {
+  return this->tokenStart_ < this->expr.length();
+}
 
-  if (currVal[0] == ' ') {
+bool Interpreter::tokenHasMoreChars() {
+  return this->tokenStart_ + this->tokenLen_ < this->expr.length();
+}
+
+std::string Interpreter::getCurrentTokenString() {
+  return this->expr.substr(this->tokenStart_, this->tokenLen_);
+}
+
+Token Interpreter::findToken() {
+  char firstChar = this->expr[this->tokenStart_];
+
+  if (firstChar == ' ') {
     return nextToken();
   }
 
-  if (isASCIIDigit(currVal[0])) {
-    char nextChar;
-    while (isASCIIDigit((nextChar = this->expr[this->tokenStart_]))) {
-      this->tokenStart_++;
-      currVal.push_back(nextChar);
-    }
-    return Token(TokenType::INTEGER, currVal);
+  if (isASCIIDigit(firstChar)) {
+    return nextInteger();
   }
 
-  if (currVal[0] == '+') {
-    return Token(TokenType::PLUS, currVal);
+  if (firstChar == '+') {
+    return Token(TokenType::PLUS, "+");
   }
 
-  if (currVal[0] == '-') {
-    return Token(TokenType::MINUS, currVal);
+  if (firstChar == '-') {
+    return Token(TokenType::MINUS, "-");
   }
-  printf("test\n");
+
   return Token();
+}
+
+Token Interpreter::nextToken() {
+  if (!hasMoreChars()) {
+    return Token();
+  }
+
+  Token token = findToken();
+  this->tokenStart_ += this->tokenLen_;
+  this->tokenLen_ = 1;
+
+  return token;
 }
 
 int Interpreter::parse() {
   this->currToken_ = this->nextToken();
   Token lhs = this->currToken_;
-  // printf("lhs %s\n", lhs.toString().c_str());
+  printf("lhs %s\n", lhs.toString().c_str());
   this->consume(TokenType::INTEGER);
 
   Token op = this->currToken_;
-  // printf("op %s\n", op.toString().c_str());
+  printf("op %s\n", op.toString().c_str());
   bool plus = true;
   if (op.type == TokenType::PLUS) {
     this->consume(TokenType::PLUS);
@@ -104,7 +121,7 @@ int Interpreter::parse() {
   }
 
   Token rhs = this->currToken_;
-  // printf("rhs %s\n", rhs.toString().c_str());
+  printf("rhs %s\n", rhs.toString().c_str());
   this->consume(TokenType::INTEGER);
 
   assert(this->nextToken().type == TokenType::END);

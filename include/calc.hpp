@@ -6,7 +6,7 @@
 namespace bluefin {
 
 enum class TokenType : int { END=0, INTEGER, PLUS, MINUS };
-static constexpr const char* const TokenTypeStrings[3] = {"END", "INTEGER", "PLUS"};
+static constexpr const char* const TokenTypeStrings[4] = {"END", "INTEGER", "PLUS", "MINUS"};
 
 class Token {
 public:
@@ -24,13 +24,17 @@ class Interpreter {
         Interpreter(std::string expr);
         int parse();
     private:
-        bool hasMoreTokens();
+        bool hasMoreChars();
+        bool tokenHasMoreChars();
+        std::string getCurrentTokenString();
+        Token findToken();
         Token nextToken();
+        Token nextInteger();
         void consume(TokenType type);
         std::string expr;
         Token currToken_;
         size_t tokenStart_;
-        size_t tokenEnd_;
+        size_t tokenLen_;
 };
 
 } // namespace bluefin
