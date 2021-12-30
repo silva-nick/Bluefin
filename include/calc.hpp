@@ -5,8 +5,8 @@
 
 namespace bluefin {
 
-enum class TokenType : int { END=0, INTEGER, PLUS, MINUS };
-static constexpr const char* const TokenTypeStrings[4] = {"END", "INTEGER", "PLUS", "MINUS"};
+enum class TokenType : int { END=0, INTEGER, PLUS, MINUS, MULT, DIV };
+static constexpr const char* const TokenTypeStrings[6] = {"END", "INTEGER", "PLUS", "MINUS", "MULT", "DIV"};
 
 class Token {
 public:

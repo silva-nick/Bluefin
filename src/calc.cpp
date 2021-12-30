@@ -89,6 +89,14 @@ Token Interpreter::findToken() {
     return Token(TokenType::MINUS, "-");
   }
 
+  if (firstChar == '*') {
+    return Token(TokenType::MULT, "*");
+  }
+
+  if (firstChar == '/') {
+    return Token(TokenType::DIV, "/");
+  }
+
   return Token();
 }
 
@@ -112,12 +120,21 @@ int Interpreter::parse() {
 
   Token op = this->currToken_;
   printf("op %s\n", op.toString().c_str());
-  bool plus = true;
-  if (op.type == TokenType::PLUS) {
-    this->consume(TokenType::PLUS);
-  } else {
-    this->consume(TokenType::MINUS);
-    plus = false;
+  switch (op.type) {
+    case TokenType::PLUS:
+      this->consume(TokenType::PLUS);
+      break;
+    case TokenType::MINUS:
+      this->consume(TokenType::MINUS);
+      break;
+    case TokenType::MULT:
+      this->consume(TokenType::MULT);
+      break;
+    case TokenType::DIV:
+      this->consume(TokenType::DIV);
+      break;
+    default:
+      break;
   }
 
   Token rhs = this->currToken_;
@@ -126,7 +143,24 @@ int Interpreter::parse() {
 
   assert(this->nextToken().type == TokenType::END);
 
-  return std::stoi(lhs.value) + std::stoi(rhs.value) * (plus ? 1 : -1);
+  int res;
+  switch (op.type) {
+    case TokenType::PLUS:
+      res = std::stoi(lhs.value) + std::stoi(rhs.value);
+      break;
+    case TokenType::MINUS:
+      res = std::stoi(lhs.value) - std::stoi(rhs.value);
+      break;
+    case TokenType::MULT:
+      res = std::stoi(lhs.value) * std::stoi(rhs.value);
+      break;
+    case TokenType::DIV:
+      res = std::stoi(lhs.value) / std::stoi(rhs.value);
+      break;
+    default:
+      break;
+  }
+  return res;
 }
 
 } // namespace bluefin
