@@ -31,6 +31,7 @@ class Interpreter {
         Token nextToken();
         Token nextInteger();
         void consume(TokenType type);
+        int term();
         std::string expr;
         Token currToken_;
         size_t tokenStart_;

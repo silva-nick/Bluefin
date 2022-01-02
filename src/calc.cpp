@@ -46,11 +46,6 @@ Interpreter::Interpreter(std::string expr) {
   this->currToken_ = Token();
 }
 
-void Interpreter::consume(TokenType type) {
-  assert(type == this->currToken_.type);
-  this->currToken_ = this->nextToken();
-}
-
 Token Interpreter::nextInteger() {
   while (tokenHasMoreChars() &&
          isASCIIDigit(this->expr[this->tokenStart_ + this->tokenLen_]))
@@ -72,10 +67,6 @@ std::string Interpreter::getCurrentTokenString() {
 
 Token Interpreter::findToken() {
   char firstChar = this->expr[this->tokenStart_];
-
-  if (firstChar == ' ') {
-    return nextToken();
-  }
 
   if (isASCIIDigit(firstChar)) {
     return nextInteger();
@@ -101,7 +92,11 @@ Token Interpreter::findToken() {
 }
 
 Token Interpreter::nextToken() {
+  while (hasMoreChars() && this->expr[this->tokenStart_] == ' ')
+    this->tokenStart_++;
+
   if (!hasMoreChars()) {
+
     return Token();
   }
 
@@ -110,6 +105,20 @@ Token Interpreter::nextToken() {
   this->tokenLen_ = 1;
 
   return token;
+}
+
+void Interpreter::consume(TokenType type) {
+  assert(type == this->currToken_.type);
+  this->currToken_ = this->nextToken();
+}
+
+int Interpreter::term() {
+  Token integer = this->currToken_;
+
+  printf("other %s\n", integer.toString().c_str());
+
+  this->consume(TokenType::INTEGER);
+  return std::stoi(integer.value);
 }
 
 int Interpreter::parse() {
@@ -126,36 +135,19 @@ int Interpreter::parse() {
     switch (op.type) {
       case TokenType::PLUS:
         this->consume(TokenType::PLUS);
+        res += this->term();
         break;
       case TokenType::MINUS:
         this->consume(TokenType::MINUS);
+        res -= this->term();
         break;
       case TokenType::MULT:
         this->consume(TokenType::MULT);
+        res *= this->term();
         break;
       case TokenType::DIV:
         this->consume(TokenType::DIV);
-        break;
-      default:
-        break;
-    }
-
-    integer = this->currToken_;
-    printf("othger %s\n", integer.toString().c_str());
-    this->consume(TokenType::INTEGER);
-
-    switch (op.type) {
-      case TokenType::PLUS:
-        res += std::stoi(integer.value);
-        break;
-      case TokenType::MINUS:
-        res -= std::stoi(integer.value);
-        break;
-      case TokenType::MULT:
-        res *= std::stoi(integer.value);
-        break;
-      case TokenType::DIV:
-        res /= std::stoi(integer.value);
+        res /= this->term();
         break;
       default:
         break;

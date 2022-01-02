@@ -12,17 +12,20 @@ int test_calc(std::string expr) {
 
 int main(int argc, char *argv[]) {
   std::cout << "> hello" << std::endl;
+  //std::cout << "tst: " << test_calc("  1  + 1    ") << std::endl;
 
   while (true) {
     // Read
     std::cout << "> ";
     std::string input;
-    std::cin >> input;
+    std::getline(std::cin, input);
 
-    // Eval and print
+    // Check for escape characters
     if (input == "q" || input == "quit") {
       break;
     }
+
+    // Eval and print
     std::cout << test_calc(input) << std::endl;
   }
 
