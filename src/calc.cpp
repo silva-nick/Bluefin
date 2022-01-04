@@ -2,6 +2,7 @@
 
 namespace bluefin {
 namespace {
+// Character types for lexeme matching
 bool isASCIILetter(char c) {
   return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 }
@@ -30,6 +31,7 @@ std::string Token::toString() {
 std::string Token::getTokenTypeString() {
   return TokenTypeStrings[(int)this->type];
 }
+// end Token
 
 Lexer::Lexer() {
   this->expr = "";
@@ -43,10 +45,12 @@ Lexer::Lexer(std::string expr) {
   this->tokenLen_ = 1;
 }
 
+// Checks if lexer has reached the end of expr
 bool Lexer::hasMoreChars() {
   return this->tokenStart_ < this->expr.length();
 }
 
+// Checks if current token hasd reached the end of expr
 bool Lexer::tokenHasMoreChars() {
   return this->tokenStart_ + this->tokenLen_ < this->expr.length();
 }
@@ -56,6 +60,7 @@ std::string Lexer::getCurrentTokenString() {
 }
 
 Token Lexer::nextToken() {
+  // Skip white space
   while (hasMoreChars() && this->expr[this->tokenStart_] == ' ')
     this->tokenStart_++;
 
@@ -94,6 +99,7 @@ Token Lexer::nextInteger() {
     this->tokenLen_++;
   return Token(TokenType::INTEGER, getCurrentTokenString());
 }
+// end Lexer
 
 Interpreter::Interpreter(std::string expr) {
   this->lexer_ = Lexer(expr);
@@ -105,26 +111,24 @@ Interpreter::Interpreter(Lexer lexer) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
-int Interpreter::factor() {
-  Token integer = this->currToken_;
-
-  printf("other %s\n", integer.toString().c_str());
-
-  this->consume(TokenType::INTEGER);
-  return std::stoi(integer.value);
-}
-
 void Interpreter::consume(TokenType type) {
   assert(type == this->currToken_.type);
   this->currToken_ = this->lexer_.nextToken();
 }
 
-int Interpreter::parse() {
+// factor : Integer
+int Interpreter::factor() {
   Token integer = this->currToken_;
-  printf("first %s\n", integer.toString().c_str());
-  this->consume(TokenType::INTEGER);
 
-  int res = std::stoi(integer.value);
+  printf("factor : %s\n", integer.toString().c_str());
+
+  this->consume(TokenType::INTEGER);
+  return std::stoi(integer.value);
+}
+
+int Interpreter::parse() {
+  int last = this->factor();
+  int res = 0;
   Token op = this->currToken_;
 
   while (op.type != TokenType::END) {
@@ -132,26 +136,29 @@ int Interpreter::parse() {
     switch (op.type) {
       case TokenType::PLUS:
         this->consume(TokenType::PLUS);
-        res += this->factor();
+        res += last;
+        last = this->factor();
         break;
       case TokenType::MINUS:
         this->consume(TokenType::MINUS);
-        res -= this->factor();
+        res += last;
+        last = -this->factor();
         break;
       case TokenType::MULT:
         this->consume(TokenType::MULT);
-        res *= this->factor();
+        last *= this->factor();
         break;
       case TokenType::DIV:
         this->consume(TokenType::DIV);
-        res /= this->factor();
+        last /= this->factor();
         break;
       default:
         break;
-    }
+    } 
 
     op = this->currToken_;
   }
+  res += last;
 
   assert(this->lexer_.nextToken().type == TokenType::END);
   return res;

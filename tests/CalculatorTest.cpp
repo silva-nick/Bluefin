@@ -28,4 +28,12 @@ TEST(Calculator, OperatorTest) {
   EXPECT_EQ(intrDiv.parse(), 2);
 }
 
+TEST(Calculator, MultDivTest) {
+  Interpreter intr1("10+1*10");
+  EXPECT_EQ(intr1.parse(), 20);
+
+  Interpreter intr2("10-10*10-10+10/10");
+  EXPECT_EQ(intr2.parse(), -99);
+}
+
 } // namespace
