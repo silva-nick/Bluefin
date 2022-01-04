@@ -11,14 +11,6 @@ bool isASCIIDigit(char c) {
 bool isASCIILetterOrDigit(char c) {
   return isASCIILetter(c) || isASCIIDigit(c);
 }
-bool isStrType(const std::string str, bool (*charType)(char)) {
-  for (char c : str) {
-    if (!charType(c)) {
-      return false;
-    }
-  }
-  return true;
-}
 } // namespace
 
 Token::Token(TokenType type, std::string value) {
@@ -39,80 +31,81 @@ std::string Token::getTokenTypeString() {
   return TokenTypeStrings[(int)this->type];
 }
 
-Interpreter::Interpreter(std::string expr) {
+Lexer::Lexer() {
+  this->expr = "";
+  this->tokenStart_ = 0;
+  this->tokenLen_ = 1;
+}
+
+Lexer::Lexer(std::string expr) {
   this->expr = expr;
   this->tokenStart_ = 0;
   this->tokenLen_ = 1;
-  this->currToken_ = Token();
 }
 
-Token Interpreter::nextInteger() {
-  while (tokenHasMoreChars() &&
-         isASCIIDigit(this->expr[this->tokenStart_ + this->tokenLen_]))
-    this->tokenLen_++;
-  return Token(TokenType::INTEGER, getCurrentTokenString());
-}
-
-bool Interpreter::hasMoreChars() {
+bool Lexer::hasMoreChars() {
   return this->tokenStart_ < this->expr.length();
 }
 
-bool Interpreter::tokenHasMoreChars() {
+bool Lexer::tokenHasMoreChars() {
   return this->tokenStart_ + this->tokenLen_ < this->expr.length();
 }
 
-std::string Interpreter::getCurrentTokenString() {
+std::string Lexer::getCurrentTokenString() {
   return this->expr.substr(this->tokenStart_, this->tokenLen_);
 }
 
-Token Interpreter::findToken() {
-  char firstChar = this->expr[this->tokenStart_];
-
-  if (isASCIIDigit(firstChar)) {
-    return nextInteger();
-  }
-
-  if (firstChar == '+') {
-    return Token(TokenType::PLUS, "+");
-  }
-
-  if (firstChar == '-') {
-    return Token(TokenType::MINUS, "-");
-  }
-
-  if (firstChar == '*') {
-    return Token(TokenType::MULT, "*");
-  }
-
-  if (firstChar == '/') {
-    return Token(TokenType::DIV, "/");
-  }
-
-  return Token();
-}
-
-Token Interpreter::nextToken() {
+Token Lexer::nextToken() {
   while (hasMoreChars() && this->expr[this->tokenStart_] == ' ')
     this->tokenStart_++;
 
   if (!hasMoreChars()) {
-
     return Token();
   }
 
-  Token token = findToken();
+  char firstChar = this->expr[this->tokenStart_];
+  Token token;
+
+  if (isASCIIDigit(firstChar)) {
+    token = nextInteger();
+  }
+  if (firstChar == '+') {
+    token = Token(TokenType::PLUS, "+");
+  }
+  if (firstChar == '-') {
+    token = Token(TokenType::MINUS, "-");
+  }
+  if (firstChar == '*') {
+    token = Token(TokenType::MULT, "*");
+  }
+  if (firstChar == '/') {
+    token = Token(TokenType::DIV, "/");
+  }
+
   this->tokenStart_ += this->tokenLen_;
   this->tokenLen_ = 1;
 
   return token;
 }
 
-void Interpreter::consume(TokenType type) {
-  assert(type == this->currToken_.type);
-  this->currToken_ = this->nextToken();
+Token Lexer::nextInteger() {
+  while (tokenHasMoreChars() &&
+         isASCIIDigit(this->expr[this->tokenStart_ + this->tokenLen_]))
+    this->tokenLen_++;
+  return Token(TokenType::INTEGER, getCurrentTokenString());
 }
 
-int Interpreter::term() {
+Interpreter::Interpreter(std::string expr) {
+  this->lexer_ = Lexer(expr);
+  this->currToken_ = this->lexer_.nextToken();
+}
+
+Interpreter::Interpreter(Lexer lexer) {
+  this->lexer_ = lexer;
+  this->currToken_ = this->lexer_.nextToken();
+}
+
+int Interpreter::factor() {
   Token integer = this->currToken_;
 
   printf("other %s\n", integer.toString().c_str());
@@ -121,8 +114,12 @@ int Interpreter::term() {
   return std::stoi(integer.value);
 }
 
+void Interpreter::consume(TokenType type) {
+  assert(type == this->currToken_.type);
+  this->currToken_ = this->lexer_.nextToken();
+}
+
 int Interpreter::parse() {
-  this->currToken_ = this->nextToken();
   Token integer = this->currToken_;
   printf("first %s\n", integer.toString().c_str());
   this->consume(TokenType::INTEGER);
@@ -135,19 +132,19 @@ int Interpreter::parse() {
     switch (op.type) {
       case TokenType::PLUS:
         this->consume(TokenType::PLUS);
-        res += this->term();
+        res += this->factor();
         break;
       case TokenType::MINUS:
         this->consume(TokenType::MINUS);
-        res -= this->term();
+        res -= this->factor();
         break;
       case TokenType::MULT:
         this->consume(TokenType::MULT);
-        res *= this->term();
+        res *= this->factor();
         break;
       case TokenType::DIV:
         this->consume(TokenType::DIV);
-        res /= this->term();
+        res /= this->factor();
         break;
       default:
         break;
@@ -156,7 +153,7 @@ int Interpreter::parse() {
     op = this->currToken_;
   }
 
-  assert(this->nextToken().type == TokenType::END);
+  assert(this->lexer_.nextToken().type == TokenType::END);
   return res;
 }
 
