@@ -12,7 +12,7 @@ int test_calc(std::string expr) {
 
 int main(int argc, char *argv[]) {
   std::cout << "> hello" << std::endl;
-  //std::cout << "tst: " << test_calc("  1  + 1    ") << std::endl;
+  // std::cout << "tst: " << test_calc("  1  + 1    ") << std::endl;
 
   while (true) {
     // Read
