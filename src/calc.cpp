@@ -116,6 +116,29 @@ void Interpreter::consume(TokenType type) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
+// MDR : factor((*|/|%)factor)*
+int Interpreter::MDR() {
+  int result = this->factor();
+  Token op = this->currToken_;
+
+  while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
+         op.type == TokenType::REM) {
+    if (op.type == TokenType::MULT) {
+      this->consume(TokenType::MULT);
+      result *= this->factor();
+    } else if (op.type == TokenType::DIV) {
+      this->consume(TokenType::DIV);
+      result /= this->factor();
+    } else {
+      this->consume(TokenType::REM);
+      result %= this->factor();
+    }
+    op = this->currToken_;
+  }
+
+  return result;
+}
+
 // factor : Integer
 int Interpreter::factor() {
   Token integer = this->currToken_;
@@ -126,42 +149,25 @@ int Interpreter::factor() {
   return std::stoi(integer.value);
 }
 
+// parse : MDR((+|-)MDR)*
 int Interpreter::parse() {
-  int last = this->factor();
-  int res = 0;
+  int result = this->MDR();
   Token op = this->currToken_;
 
   while (op.type != TokenType::END) {
     printf("op %s\n", op.toString().c_str());
-    switch (op.type) {
-      case TokenType::PLUS:
-        this->consume(TokenType::PLUS);
-        res += last;
-        last = this->factor();
-        break;
-      case TokenType::MINUS:
-        this->consume(TokenType::MINUS);
-        res += last;
-        last = -this->factor();
-        break;
-      case TokenType::MULT:
-        this->consume(TokenType::MULT);
-        last *= this->factor();
-        break;
-      case TokenType::DIV:
-        this->consume(TokenType::DIV);
-        last /= this->factor();
-        break;
-      default:
-        break;
-    } 
-
+    if (op.type == TokenType::PLUS) {
+      this->consume(TokenType::PLUS);
+      result += this->MDR();
+    } else {
+      this->consume(TokenType::MINUS);
+      result -= this->MDR();
+    }
     op = this->currToken_;
   }
-  res += last;
 
   assert(this->lexer_.nextToken().type == TokenType::END);
-  return res;
+  return result;
 }
 
 } // namespace bluefin

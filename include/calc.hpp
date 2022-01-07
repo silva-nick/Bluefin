@@ -5,9 +5,9 @@
 
 namespace bluefin {
 
-enum class TokenType : int { END = 0, INTEGER, PLUS, MINUS, MULT, DIV };
-static constexpr const char *const TokenTypeStrings[6] =
-    {"END", "INTEGER", "PLUS", "MINUS", "MULT", "DIV"};
+enum class TokenType : int { END = 0, INTEGER, PLUS, MINUS, MULT, DIV, REM };
+static constexpr const char *const TokenTypeStrings[7] =
+    {"END", "INTEGER", "PLUS", "MINUS", "MULT", "DIV", "REM"};
 
 class Token {
  public:
@@ -45,6 +45,8 @@ class Interpreter {
 
  private:
   void consume(TokenType type);
+  int AS();
+  int MDR();
   int factor();
   Lexer lexer_;
   Token currToken_;
