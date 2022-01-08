@@ -34,6 +34,21 @@ TEST(Calculator, MultDivTest) {
 
   Interpreter intr2("10-10*10-10+10/10");
   EXPECT_EQ(intr2.parse(), -99);
+
+  Interpreter intr3("5%2+3");
+  EXPECT_EQ(intr3.parse(), 4);
 }
+
+TEST(Calculator, ParenTest) {
+  Interpreter intr1("(1+1)*10");
+  EXPECT_EQ(intr1.parse(), 20);
+
+  Interpreter intr2("7 + 3 * (10 / (12 / (3 + 1) - 1))");
+  EXPECT_EQ(intr2.parse(), 22);
+
+  Interpreter intr3("5%(2+3)");
+  EXPECT_EQ(intr3.parse(), 0);
+}
+
 
 } // namespace

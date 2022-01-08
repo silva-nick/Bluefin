@@ -74,17 +74,31 @@ Token Lexer::nextToken() {
   if (isASCIIDigit(firstChar)) {
     token = nextInteger();
   }
-  if (firstChar == '+') {
-    token = Token(TokenType::PLUS, "+");
-  }
-  if (firstChar == '-') {
-    token = Token(TokenType::MINUS, "-");
-  }
-  if (firstChar == '*') {
-    token = Token(TokenType::MULT, "*");
-  }
-  if (firstChar == '/') {
-    token = Token(TokenType::DIV, "/");
+
+  switch (firstChar) {
+    case '+':
+      token = Token(TokenType::PLUS, "+");
+      break;
+    case '-':
+      token = Token(TokenType::MINUS, "-");
+      break;
+    case '*':
+      token = Token(TokenType::MULT, "*");
+      break;
+    case '/':
+      token = Token(TokenType::DIV, "/");
+      break;
+    case '%':
+      token = Token(TokenType::REM, "%");
+      break;
+    case '(':
+      token = Token(TokenType::PSTR, "(");
+      break;
+    case ')':
+      token = Token(TokenType::PEND, ")");
+      break;
+    default:
+      break;
   }
 
   this->tokenStart_ += this->tokenLen_;
@@ -116,6 +130,26 @@ void Interpreter::consume(TokenType type) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
+// AS : MDR((+|-)MDR)*
+int Interpreter::AS() {
+  int result = this->MDR();
+  Token op = this->currToken_;
+
+  while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
+    printf("op %s\n", op.toString().c_str());
+    if (op.type == TokenType::PLUS) {
+      this->consume(TokenType::PLUS);
+      result += this->MDR();
+    } else {
+      this->consume(TokenType::MINUS);
+      result -= this->MDR();
+    }
+    op = this->currToken_;
+  }
+
+  return result;
+}
+
 // MDR : factor((*|/|%)factor)*
 int Interpreter::MDR() {
   int result = this->factor();
@@ -123,6 +157,7 @@ int Interpreter::MDR() {
 
   while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
          op.type == TokenType::REM) {
+    printf("op %s\n", op.toString().c_str());
     if (op.type == TokenType::MULT) {
       this->consume(TokenType::MULT);
       result *= this->factor();
@@ -141,12 +176,16 @@ int Interpreter::MDR() {
 
 // factor : Integer
 int Interpreter::factor() {
-  Token integer = this->currToken_;
+  Token factor = this->currToken_;
+  printf("factor : %s\n", factor.toString().c_str());
 
-  printf("factor : %s\n", integer.toString().c_str());
-
-  this->consume(TokenType::INTEGER);
-  return std::stoi(integer.value);
+  if (factor.type == TokenType::PSTR) {
+    this->consume(TokenType::PSTR);
+    return parse();
+  } else {
+    this->consume(TokenType::INTEGER);
+    return std::stoi(factor.value);
+  }
 }
 
 // parse : MDR((+|-)MDR)*
@@ -159,14 +198,18 @@ int Interpreter::parse() {
     if (op.type == TokenType::PLUS) {
       this->consume(TokenType::PLUS);
       result += this->MDR();
-    } else {
+    } else if (op.type == TokenType::MINUS) {
       this->consume(TokenType::MINUS);
       result -= this->MDR();
+    } else {
+      // op.type == TokenType::PEND
+      this->consume(TokenType::PEND);
+      break;
     }
     op = this->currToken_;
   }
 
-  assert(this->lexer_.nextToken().type == TokenType::END);
+  printf("returning %d\n", result);
   return result;
 }
 
