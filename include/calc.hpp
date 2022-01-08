@@ -45,7 +45,6 @@ class Interpreter {
 
  private:
   void consume(TokenType type);
-  int AS();
   int MDR();
   int factor();
   Lexer lexer_;

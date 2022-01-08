@@ -130,26 +130,6 @@ void Interpreter::consume(TokenType type) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
-// AS : MDR((+|-)MDR)*
-int Interpreter::AS() {
-  int result = this->MDR();
-  Token op = this->currToken_;
-
-  while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
-    printf("op %s\n", op.toString().c_str());
-    if (op.type == TokenType::PLUS) {
-      this->consume(TokenType::PLUS);
-      result += this->MDR();
-    } else {
-      this->consume(TokenType::MINUS);
-      result -= this->MDR();
-    }
-    op = this->currToken_;
-  }
-
-  return result;
-}
-
 // MDR : factor((*|/|%)factor)*
 int Interpreter::MDR() {
   int result = this->factor();
@@ -174,14 +154,16 @@ int Interpreter::MDR() {
   return result;
 }
 
-// factor : Integer
+// factor : Integer | LPAREN parse RPAREN
 int Interpreter::factor() {
   Token factor = this->currToken_;
   printf("factor : %s\n", factor.toString().c_str());
 
   if (factor.type == TokenType::PSTR) {
     this->consume(TokenType::PSTR);
-    return parse();
+    int res = parse();
+    this->consume(TokenType::PEND);
+    return res;
   } else {
     this->consume(TokenType::INTEGER);
     return std::stoi(factor.value);
@@ -193,18 +175,14 @@ int Interpreter::parse() {
   int result = this->MDR();
   Token op = this->currToken_;
 
-  while (op.type != TokenType::END) {
+  while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
     printf("op %s\n", op.toString().c_str());
     if (op.type == TokenType::PLUS) {
       this->consume(TokenType::PLUS);
       result += this->MDR();
-    } else if (op.type == TokenType::MINUS) {
+    } else {
       this->consume(TokenType::MINUS);
       result -= this->MDR();
-    } else {
-      // op.type == TokenType::PEND
-      this->consume(TokenType::PEND);
-      break;
     }
     op = this->currToken_;
   }
