@@ -56,6 +56,7 @@ class BinOp : public AST {
 class Num : public AST {
  public:
   Num(Token token);
+
  private:
 };
 

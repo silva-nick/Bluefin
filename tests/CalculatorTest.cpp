@@ -50,5 +50,4 @@ TEST(Calculator, ParenTest) {
   EXPECT_EQ(intr3.interpret(), 0);
 }
 
-
 } // namespace

@@ -120,7 +120,7 @@ AST Parser::MDR() {
 
   while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
          op.type == TokenType::REM) {
-    printf("op %s\n", op.toString().c_str());
+    printf("op     :%s\n", op.toString().c_str());
     if (op.type == TokenType::MULT) {
       this->consume(TokenType::MULT);
     } else if (op.type == TokenType::DIV) {
@@ -138,7 +138,7 @@ AST Parser::MDR() {
 // factor : Integer | LPAREN parse RPAREN
 AST Parser::factor() {
   Token factor = this->currToken_;
-  printf("factor : %s\n", factor.toString().c_str());
+  printf("factor :%s\n", factor.toString().c_str());
 
   if (factor.type == TokenType::PSTR) {
     this->consume(TokenType::PSTR);
@@ -157,7 +157,7 @@ AST Parser::parse() {
   Token op = this->currToken_;
 
   while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
-    printf("op %s\n", op.toString().c_str());
+    printf("op     :%s\n", op.toString().c_str());
     if (op.type == TokenType::PLUS) {
       this->consume(TokenType::PLUS);
     } else {
@@ -184,6 +184,7 @@ Interpreter::Interpreter(std::string expr) {
 int Interpreter::visit(AST &node) {
   switch (node.type) {
     case ASTType::BinOp:
+      // Cast causes error
       return visitBinOp(static_cast<BinOp &>(node));
       break;
     case ASTType::Num:
@@ -195,6 +196,7 @@ int Interpreter::visit(AST &node) {
 }
 
 int Interpreter::visitBinOp(BinOp node) {
+  printf("intern %s \n", node.token.toString().c_str());
   switch (node.token.type) {
     case TokenType::PLUS:
       return this->visit(node.left) + this->visit(node.right);
@@ -217,11 +219,13 @@ int Interpreter::visitBinOp(BinOp node) {
 }
 
 int Interpreter::visitNum(Num node) {
+  printf("leaf %s \n", node.token.toString().c_str());
   return std::stoi(node.token.value);
 }
 
 int Interpreter::interpret() {
   AST root = this->parser.parse();
+  printf("root node %s \n", root.token.toString().c_str());
   return this->visit(root);
 }
 // end interpreter
