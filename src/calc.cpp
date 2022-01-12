@@ -14,25 +14,6 @@ bool isASCIILetterOrDigit(char c) {
 }
 } // namespace
 
-Token::Token(TokenType type, std::string value) {
-  this->type = type;
-  this->value = value;
-}
-
-Token::Token() {
-  this->type = TokenType::END;
-  this->value = "";
-}
-
-std::string Token::toString() {
-  return "Token(" + this->getTokenTypeString() + "," + this->value + ")";
-}
-
-std::string Token::getTokenTypeString() {
-  return TokenTypeStrings[(int)this->type];
-}
-// end Token
-
 Lexer::Lexer() {
   this->expr = "";
   this->tokenStart_ = 0;
@@ -115,24 +96,26 @@ Token Lexer::nextInteger() {
 }
 // end Lexer
 
-Interpreter::Interpreter(std::string expr) {
+Parser::Parser() {}
+
+Parser::Parser(std::string expr) {
   this->lexer_ = Lexer(expr);
   this->currToken_ = this->lexer_.nextToken();
 }
 
-Interpreter::Interpreter(Lexer lexer) {
+Parser::Parser(Lexer lexer) {
   this->lexer_ = lexer;
   this->currToken_ = this->lexer_.nextToken();
 }
 
-void Interpreter::consume(TokenType type) {
+void Parser::consume(TokenType type) {
   assert(type == this->currToken_.type);
   this->currToken_ = this->lexer_.nextToken();
 }
 
 // MDR : factor((*|/|%)factor)*
-int Interpreter::MDR() {
-  int result = this->factor();
+AST Parser::MDR() {
+  AST node = this->factor();
   Token op = this->currToken_;
 
   while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
@@ -140,55 +123,107 @@ int Interpreter::MDR() {
     printf("op %s\n", op.toString().c_str());
     if (op.type == TokenType::MULT) {
       this->consume(TokenType::MULT);
-      result *= this->factor();
     } else if (op.type == TokenType::DIV) {
       this->consume(TokenType::DIV);
-      result /= this->factor();
     } else {
       this->consume(TokenType::REM);
-      result %= this->factor();
     }
+    node = BinOp(node, op, this->factor());
     op = this->currToken_;
   }
 
-  return result;
+  return node;
 }
 
 // factor : Integer | LPAREN parse RPAREN
-int Interpreter::factor() {
+AST Parser::factor() {
   Token factor = this->currToken_;
   printf("factor : %s\n", factor.toString().c_str());
 
   if (factor.type == TokenType::PSTR) {
     this->consume(TokenType::PSTR);
-    int res = parse();
+    AST node = parse();
     this->consume(TokenType::PEND);
-    return res;
+    return node;
   } else {
     this->consume(TokenType::INTEGER);
-    return std::stoi(factor.value);
+    return Num(factor);
   }
 }
 
 // parse : MDR((+|-)MDR)*
-int Interpreter::parse() {
-  int result = this->MDR();
+AST Parser::parse() {
+  AST node = this->MDR();
   Token op = this->currToken_;
 
   while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
     printf("op %s\n", op.toString().c_str());
     if (op.type == TokenType::PLUS) {
       this->consume(TokenType::PLUS);
-      result += this->MDR();
     } else {
       this->consume(TokenType::MINUS);
-      result -= this->MDR();
     }
+
+    node = BinOp(node, op, this->MDR());
     op = this->currToken_;
   }
 
-  printf("returning %d\n", result);
-  return result;
+  printf("returning\n");
+  return node;
 }
+// end parser
+
+Interpreter::Interpreter(Parser parser) {
+  this->parser = parser;
+}
+
+Interpreter::Interpreter(std::string expr) {
+  this->parser = Parser(expr);
+}
+
+int Interpreter::visit(AST &node) {
+  switch (node.type) {
+    case ASTType::BinOp:
+      return visitBinOp(static_cast<BinOp &>(node));
+      break;
+    case ASTType::Num:
+      return visitNum(static_cast<Num &>(node));
+      break;
+    default:
+      assert(0);
+  }
+}
+
+int Interpreter::visitBinOp(BinOp node) {
+  switch (node.token.type) {
+    case TokenType::PLUS:
+      return this->visit(node.left) + this->visit(node.right);
+      break;
+    case TokenType::MINUS:
+      return this->visit(node.left) - this->visit(node.right);
+      break;
+    case TokenType::MULT:
+      return this->visit(node.left) * this->visit(node.right);
+      break;
+    case TokenType::DIV:
+      return this->visit(node.left) / this->visit(node.right);
+      break;
+    case TokenType::REM:
+      return this->visit(node.left) % this->visit(node.right);
+      break;
+    default:
+      assert(0);
+  }
+}
+
+int Interpreter::visitNum(Num node) {
+  return std::stoi(node.token.value);
+}
+
+int Interpreter::interpret() {
+  AST root = this->parser.parse();
+  return this->visit(root);
+}
+// end interpreter
 
 } // namespace bluefin

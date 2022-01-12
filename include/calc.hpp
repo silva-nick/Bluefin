@@ -2,24 +2,9 @@
 
 #include <assert.h>
 #include <string>
+#include "ast.hpp"
 
 namespace bluefin {
-
-enum class TokenType : int { END = 0, PSTR, PEND, INTEGER, PLUS, MINUS, MULT, DIV, REM };
-static constexpr const char *const TokenTypeStrings[9] =
-    {"END", "PSTR", "PEND", "INTEGER", "PLUS", "MINUS", "MULT", "DIV", "REM"};
-
-class Token {
- public:
-  Token(TokenType type, std::string value);
-  Token();
-  TokenType type;
-  std::string value;
-  std::string toString();
-
- private:
-  std::string getTokenTypeString();
-};
 
 class Lexer {
  public:
@@ -37,18 +22,32 @@ class Lexer {
   size_t tokenLen_;
 };
 
-class Interpreter {
+class Parser {
  public:
-  Interpreter(std::string expr);
-  Interpreter(Lexer lexer);
-  int parse();
+  Parser();
+  Parser(std::string expr);
+  Parser(Lexer lexer);
+  AST parse();
 
  private:
   void consume(TokenType type);
-  int MDR();
-  int factor();
+  AST MDR();
+  AST factor();
   Lexer lexer_;
   Token currToken_;
+};
+
+class Interpreter {
+ public:
+  Interpreter(Parser parser);
+  Interpreter(std::string expr);
+  int interpret();
+
+ private:
+  Parser parser;
+  int visit(AST &node);
+  int visitBinOp(BinOp node);
+  int visitNum(Num node);
 };
 
 } // namespace bluefin

@@ -6,8 +6,10 @@
 using namespace bluefin;
 
 int test_calc(std::string expr) {
-  Interpreter intr(expr);
-  return intr.parse();
+  Lexer lexer(expr);
+  Parser parser(lexer);
+  Interpreter intr(parser);
+  return intr.interpret();
 }
 
 int main(int argc, char *argv[]) {
