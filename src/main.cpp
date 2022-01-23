@@ -5,16 +5,9 @@
 
 using namespace bluefin;
 
-int test_calc(std::string expr) {
-  Lexer lexer(expr);
-  Parser parser(lexer);
-  Interpreter intr(parser);
-  return intr.interpret();
-}
-
 int main(int argc, char *argv[]) {
   std::cout << "> hello" << std::endl;
-  std::cout << "tst: " << test_calc("1+1") << std::endl;
+  std::cout << run("1+1") << std::endl;
 
   while (true) {
     // Read
@@ -28,7 +21,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Eval and print
-    std::cout << test_calc(input) << std::endl;
+    std::cout << run(input) << std::endl;
   }
 
   std::cout << std::endl;

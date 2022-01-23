@@ -6,10 +6,11 @@
 
 namespace bluefin {
 
+int run(const std::string &expr);
+
 class Lexer {
  public:
-  Lexer();
-  Lexer(std::string expr);
+  Lexer(const std::string &expr);
   Token nextToken();
 
  private:
@@ -17,15 +18,13 @@ class Lexer {
   bool tokenHasMoreChars();
   std::string getCurrentTokenString();
   Token nextInteger();
-  std::string expr;
+  std::string expr_;
   size_t tokenStart_;
   size_t tokenLen_;
 };
 
 class Parser {
  public:
-  Parser();
-  Parser(std::string expr);
   Parser(Lexer lexer);
   AST parse();
 
@@ -33,18 +32,17 @@ class Parser {
   void consume(TokenType type);
   AST MDR();
   AST factor();
-  Lexer lexer_;
+  Lexer &lexer_;
   Token currToken_;
 };
 
 class Interpreter {
  public:
-  Interpreter(Parser parser);
-  Interpreter(std::string expr);
+  Interpreter(Parser &parser);
   int interpret();
 
  private:
-  Parser parser;
+  Parser &parser_;
   int visit(AST &node);
   int visitBinOp(BinOp node);
   int visitNum(Num node);

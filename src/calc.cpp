@@ -3,53 +3,53 @@
 namespace bluefin {
 namespace {
 // Character types for lexeme matching
-bool isASCIILetter(char c) {
+bool isASCIILetter(const char c) {
   return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 }
-bool isASCIIDigit(char c) {
+bool isASCIIDigit(const char c) {
   return (c >= '0' && c <= '9');
 }
-bool isASCIILetterOrDigit(char c) {
+bool isASCIILetterOrDigit(const char c) {
   return isASCIILetter(c) || isASCIIDigit(c);
 }
 } // namespace
 
-Lexer::Lexer() {
-  this->expr = "";
-  this->tokenStart_ = 0;
-  this->tokenLen_ = 1;
+int run(const std::string &expr) {
+  Lexer lexer(expr);
+  Parser parser(lexer);
+  Interpreter interpreter(parser);
+  return interpreter.interpret();
 }
 
-Lexer::Lexer(std::string expr) {
-  this->expr = expr;
+Lexer::Lexer(const std::string &expr): expr_(expr) {
   this->tokenStart_ = 0;
   this->tokenLen_ = 1;
 }
 
 // Checks if lexer has reached the end of expr
 bool Lexer::hasMoreChars() {
-  return this->tokenStart_ < this->expr.length();
+  return this->tokenStart_ < this->expr_.length();
 }
 
 // Checks if current token hasd reached the end of expr
 bool Lexer::tokenHasMoreChars() {
-  return this->tokenStart_ + this->tokenLen_ < this->expr.length();
+  return this->tokenStart_ + this->tokenLen_ < this->expr_.length();
 }
 
 std::string Lexer::getCurrentTokenString() {
-  return this->expr.substr(this->tokenStart_, this->tokenLen_);
+  return this->expr_.substr(this->tokenStart_, this->tokenLen_);
 }
 
 Token Lexer::nextToken() {
   // Skip white space
-  while (hasMoreChars() && this->expr[this->tokenStart_] == ' ')
+  printf("test %u %u %u\n",this->tokenStart_, this->tokenLen_, this->expr_.length());
+  while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
     this->tokenStart_++;
-
   if (!hasMoreChars()) {
     return Token();
   }
 
-  char firstChar = this->expr[this->tokenStart_];
+  char firstChar = this->expr_[this->tokenStart_];
   Token token;
 
   if (isASCIIDigit(firstChar)) {
@@ -90,21 +90,13 @@ Token Lexer::nextToken() {
 
 Token Lexer::nextInteger() {
   while (tokenHasMoreChars() &&
-         isASCIIDigit(this->expr[this->tokenStart_ + this->tokenLen_]))
+         isASCIIDigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
     this->tokenLen_++;
   return Token(TokenType::INTEGER, getCurrentTokenString());
 }
 // end Lexer
 
-Parser::Parser() {}
-
-Parser::Parser(std::string expr) {
-  this->lexer_ = Lexer(expr);
-  this->currToken_ = this->lexer_.nextToken();
-}
-
-Parser::Parser(Lexer lexer) {
-  this->lexer_ = lexer;
+Parser::Parser(Lexer lexer):lexer_(lexer) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
@@ -146,6 +138,7 @@ AST Parser::factor() {
     this->consume(TokenType::PEND);
     return node;
   } else {
+    printf("consume factor int \n");
     this->consume(TokenType::INTEGER);
     return Num(factor);
   }
@@ -173,13 +166,7 @@ AST Parser::parse() {
 }
 // end parser
 
-Interpreter::Interpreter(Parser parser) {
-  this->parser = parser;
-}
-
-Interpreter::Interpreter(std::string expr) {
-  this->parser = Parser(expr);
-}
+Interpreter::Interpreter(Parser &parser):parser_(parser) {}
 
 int Interpreter::visit(AST &node) {
   switch (node.type) {
@@ -196,7 +183,7 @@ int Interpreter::visit(AST &node) {
 }
 
 int Interpreter::visitBinOp(BinOp node) {
-  printf("intern %s \n", node.token.toString().c_str());
+  printf("binop %s \n", node.token.toString().c_str());
   switch (node.token.type) {
     case TokenType::PLUS:
       return this->visit(node.left) + this->visit(node.right);
@@ -224,7 +211,7 @@ int Interpreter::visitNum(Num node) {
 }
 
 int Interpreter::interpret() {
-  AST root = this->parser.parse();
+  AST root = this->parser_.parse();
   printf("root node %s \n", root.token.toString().c_str());
   return this->visit(root);
 }
