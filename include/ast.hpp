@@ -25,10 +25,10 @@ class Token {
   Token();
   TokenType type;
   std::string value;
-  std::string toString();
+  std::string toString() const;
 
  private:
-  std::string getTokenTypeString();
+  std::string getTokenTypeString() const;
 };
 
 enum class ASTType : int { BinOp = 0, Num };
@@ -36,6 +36,8 @@ enum class ASTType : int { BinOp = 0, Num };
 // Tree node parent class
 class AST {
  public:
+  AST(Token value, ASTType nodeType);
+
   Token token;
   ASTType type;
 
@@ -46,6 +48,7 @@ class AST {
 class BinOp : public AST {
  public:
   BinOp(AST left, Token op, AST right);
+  
   AST left;
   AST right;
 

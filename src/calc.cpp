@@ -21,7 +21,7 @@ int run(const std::string &expr) {
   return interpreter.interpret();
 }
 
-Lexer::Lexer(const std::string &expr): expr_(expr) {
+Lexer::Lexer(const std::string &expr) : expr_(expr) {
   this->tokenStart_ = 0;
   this->tokenLen_ = 1;
 }
@@ -42,7 +42,6 @@ std::string Lexer::getCurrentTokenString() {
 
 Token Lexer::nextToken() {
   // Skip white space
-  printf("test %u %u %u\n",this->tokenStart_, this->tokenLen_, this->expr_.length());
   while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
     this->tokenStart_++;
   if (!hasMoreChars()) {
@@ -96,7 +95,7 @@ Token Lexer::nextInteger() {
 }
 // end Lexer
 
-Parser::Parser(Lexer lexer):lexer_(lexer) {
+Parser::Parser(Lexer lexer) : lexer_(lexer) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
@@ -138,7 +137,6 @@ AST Parser::factor() {
     this->consume(TokenType::PEND);
     return node;
   } else {
-    printf("consume factor int \n");
     this->consume(TokenType::INTEGER);
     return Num(factor);
   }
@@ -166,23 +164,23 @@ AST Parser::parse() {
 }
 // end parser
 
-Interpreter::Interpreter(Parser &parser):parser_(parser) {}
+Interpreter::Interpreter(Parser &parser) : parser_(parser) {}
 
-int Interpreter::visit(AST &node) {
+int Interpreter::visit(const AST &node) const {
+  printf("visiting %d \n", static_cast<int>(node.type));
   switch (node.type) {
     case ASTType::BinOp:
-      // Cast causes error
-      return visitBinOp(static_cast<BinOp &>(node));
+      return visitBinOp(static_cast<const BinOp &>(node));
       break;
     case ASTType::Num:
-      return visitNum(static_cast<Num &>(node));
+      return visitNum(static_cast<const Num &>(node));
       break;
     default:
       assert(0);
   }
 }
 
-int Interpreter::visitBinOp(BinOp node) {
+int Interpreter::visitBinOp(const BinOp &node) const {
   printf("binop %s \n", node.token.toString().c_str());
   switch (node.token.type) {
     case TokenType::PLUS:
@@ -205,7 +203,7 @@ int Interpreter::visitBinOp(BinOp node) {
   }
 }
 
-int Interpreter::visitNum(Num node) {
+int Interpreter::visitNum(const Num &node) const {
   printf("leaf %s \n", node.token.toString().c_str());
   return std::stoi(node.token.value);
 }
@@ -213,6 +211,9 @@ int Interpreter::visitNum(Num node) {
 int Interpreter::interpret() {
   AST root = this->parser_.parse();
   printf("root node %s \n", root.token.toString().c_str());
+  printf(
+      "left node %s \n", static_cast<BinOp &>(root).left.token.toString().c_str());
+
   return this->visit(root);
 }
 // end interpreter

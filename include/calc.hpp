@@ -43,9 +43,9 @@ class Interpreter {
 
  private:
   Parser &parser_;
-  int visit(AST &node);
-  int visitBinOp(BinOp node);
-  int visitNum(Num node);
+  int visit(const AST &node) const;
+  int visitBinOp(const BinOp &node) const;
+  int visitNum(const Num &node) const;
 };
 
 } // namespace bluefin
