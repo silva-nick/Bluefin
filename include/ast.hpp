@@ -32,6 +32,9 @@ class Token {
 };
 
 enum class ASTType : int { BinOp = 0, Num };
+static constexpr const char *const ASTTypeStrings[2] =
+    {"BinOp", "Num"};
+
 
 // Tree node parent class
 class AST {
@@ -41,6 +44,8 @@ class AST {
   Token token;
   ASTType type;
 
+  virtual std::string toString() const;
+
  private:
 };
 
@@ -48,9 +53,11 @@ class AST {
 class BinOp : public AST {
  public:
   BinOp(AST left, Token op, AST right);
-  
+
   AST left;
   AST right;
+
+  std::string toString() const;
 
  private:
 };
@@ -59,6 +66,8 @@ class BinOp : public AST {
 class Num : public AST {
  public:
   Num(Token token);
+
+  std::string toString() const;
 
  private:
 };

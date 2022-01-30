@@ -21,14 +21,31 @@ std::string Token::getTokenTypeString() const {
 }
 // end Token
 
-AST::AST(Token value, ASTType nodeType) : token(std::move(value)), type(nodeType) {}
+AST::AST(Token value, ASTType nodeType)
+    : token(std::move(value)), type(nodeType) {}
+
+std::string AST::toString() const {
+  return "token:" + this->token.toString() +
+      ", type:" + ASTTypeStrings[static_cast<int>(this->type)];
+}
 // end AST
 
-BinOp::BinOp(AST leftVal,  Token op,  AST rightVal)
-    : left(std::move(leftVal)), right(std::move(rightVal)), AST(op, ASTType::BinOp) {}
+BinOp::BinOp(AST leftVal, Token op, AST rightVal)
+    : left(std::move(leftVal)),
+      right(std::move(rightVal)),
+      AST(op, ASTType::BinOp) {}
+
+std::string BinOp::toString() const {
+  return AST::toString() + ", left:" + this->left.token.toString() +
+      ", right:" + this->right.token.toString();
+}
 // end BinOp
 
 Num::Num(Token token) : AST(token, ASTType::Num) {}
+
+std::string Num::toString() const{
+  return AST::toString();
+}
 // end Num
 
 } // namespace bluefin

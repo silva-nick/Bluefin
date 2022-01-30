@@ -26,12 +26,12 @@ class Lexer {
 class Parser {
  public:
   Parser(Lexer lexer);
-  AST parse();
+  AST *parse();
 
  private:
   void consume(TokenType type);
-  AST MDR();
-  AST factor();
+  AST *MDR();
+  AST *factor();
   Lexer &lexer_;
   Token currToken_;
 };

@@ -105,8 +105,8 @@ void Parser::consume(TokenType type) {
 }
 
 // MDR : factor((*|/|%)factor)*
-AST Parser::MDR() {
-  AST node = this->factor();
+AST *Parser::MDR() {
+  AST *node = this->factor();
   Token op = this->currToken_;
 
   while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
@@ -119,7 +119,7 @@ AST Parser::MDR() {
     } else {
       this->consume(TokenType::REM);
     }
-    node = BinOp(node, op, this->factor());
+    node = new BinOp(*node, op, *this->factor());
     op = this->currToken_;
   }
 
@@ -127,24 +127,24 @@ AST Parser::MDR() {
 }
 
 // factor : Integer | LPAREN parse RPAREN
-AST Parser::factor() {
+AST *Parser::factor() {
   Token factor = this->currToken_;
   printf("factor :%s\n", factor.toString().c_str());
 
   if (factor.type == TokenType::PSTR) {
     this->consume(TokenType::PSTR);
-    AST node = parse();
+    AST *node = parse();
     this->consume(TokenType::PEND);
     return node;
   } else {
     this->consume(TokenType::INTEGER);
-    return Num(factor);
+    return new Num(factor);
   }
 }
 
 // parse : MDR((+|-)MDR)*
-AST Parser::parse() {
-  AST node = this->MDR();
+AST *Parser::parse() {
+  AST *node = this->MDR();
   Token op = this->currToken_;
 
   while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
@@ -155,7 +155,7 @@ AST Parser::parse() {
       this->consume(TokenType::MINUS);
     }
 
-    node = BinOp(node, op, this->MDR());
+    node = new BinOp(*node, op, *this->MDR());
     op = this->currToken_;
   }
 
@@ -209,12 +209,12 @@ int Interpreter::visitNum(const Num &node) const {
 }
 
 int Interpreter::interpret() {
-  AST root = this->parser_.parse();
-  printf("root node %s \n", root.token.toString().c_str());
-  printf(
-      "left node %s \n", static_cast<BinOp &>(root).left.token.toString().c_str());
+  // search for new keyword
+  AST *root = this->parser_.parse();
 
-  return this->visit(root);
+  printf("root node %s \n", root->token.toString().c_str());
+
+  return this->visit(*root);
 }
 // end interpreter
 
