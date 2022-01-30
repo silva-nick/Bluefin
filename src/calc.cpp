@@ -122,11 +122,11 @@ AST *Parser::ADS() {
       this->consume(TokenType::MINUS);
     }
 
-    node = new BinOp(*node, op, *this->MDR());
+    node = new BinOp(node, op, this->MDR());
     op = this->currToken_;
   }
 
-  printf("returning\n");
+  printf("parsing finished\n\n");
   return node;
 }
 
@@ -145,7 +145,7 @@ AST *Parser::MDR() {
     } else {
       this->consume(TokenType::REM);
     }
-    node = new BinOp(*node, op, *this->factor());
+    node = new BinOp(node, op, this->factor());
     op = this->currToken_;
   }
 
@@ -189,19 +189,19 @@ int Interpreter::visitBinOp(const BinOp &node) const {
   printf("binop %s \n", node.token.toString().c_str());
   switch (node.token.type) {
     case TokenType::PLUS:
-      return this->visit(node.left) + this->visit(node.right);
+      return this->visit(*node.left) + this->visit(*node.right);
       break;
     case TokenType::MINUS:
-      return this->visit(node.left) - this->visit(node.right);
+      return this->visit(*node.left) - this->visit(*node.right);
       break;
     case TokenType::MULT:
-      return this->visit(node.left) * this->visit(node.right);
+      return this->visit(*node.left) * this->visit(*node.right);
       break;
     case TokenType::DIV:
-      return this->visit(node.left) / this->visit(node.right);
+      return this->visit(*node.left) / this->visit(*node.right);
       break;
     case TokenType::REM:
-      return this->visit(node.left) % this->visit(node.right);
+      return this->visit(*node.left) % this->visit(*node.right);
       break;
     default:
       assert(0);

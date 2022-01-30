@@ -7,7 +7,7 @@ using namespace bluefin;
 
 int main(int argc, char *argv[]) {
   std::cout << "> hello" << std::endl;
-  std::cout << run("1+1") << std::endl;
+  std::cout << run("1+1+1") << std::endl;
 
   while (true) {
     // Read

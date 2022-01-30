@@ -30,14 +30,14 @@ std::string AST::toString() const {
 }
 // end AST
 
-BinOp::BinOp(AST leftVal, Token op, AST rightVal)
+BinOp::BinOp(AST *leftVal, Token op, AST *rightVal)
     : left(std::move(leftVal)),
       right(std::move(rightVal)),
       AST(op, ASTType::BinOp) {}
 
 std::string BinOp::toString() const {
-  return AST::toString() + ", left:" + this->left.token.toString() +
-      ", right:" + this->right.token.toString();
+  return AST::toString() + ", left:" + this->left->token.toString() +
+      ", right:" + this->right->token.toString();
 }
 // end BinOp
 
