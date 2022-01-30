@@ -104,6 +104,32 @@ void Parser::consume(TokenType type) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
+// parse : ADS
+AST *Parser::parse() {
+  return this->ADS();
+}
+
+// ADS : MDR((+|-)MDR)*
+AST *Parser::ADS() {
+  AST *node = this->MDR();
+  Token op = this->currToken_;
+
+  while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
+    printf("op     :%s\n", op.toString().c_str());
+    if (op.type == TokenType::PLUS) {
+      this->consume(TokenType::PLUS);
+    } else {
+      this->consume(TokenType::MINUS);
+    }
+
+    node = new BinOp(*node, op, *this->MDR());
+    op = this->currToken_;
+  }
+
+  printf("returning\n");
+  return node;
+}
+
 // MDR : factor((*|/|%)factor)*
 AST *Parser::MDR() {
   AST *node = this->factor();
@@ -140,27 +166,6 @@ AST *Parser::factor() {
     this->consume(TokenType::INTEGER);
     return new Num(factor);
   }
-}
-
-// parse : MDR((+|-)MDR)*
-AST *Parser::parse() {
-  AST *node = this->MDR();
-  Token op = this->currToken_;
-
-  while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
-    printf("op     :%s\n", op.toString().c_str());
-    if (op.type == TokenType::PLUS) {
-      this->consume(TokenType::PLUS);
-    } else {
-      this->consume(TokenType::MINUS);
-    }
-
-    node = new BinOp(*node, op, *this->MDR());
-    op = this->currToken_;
-  }
-
-  printf("returning\n");
-  return node;
 }
 // end parser
 

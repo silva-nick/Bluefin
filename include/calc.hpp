@@ -30,6 +30,7 @@ class Parser {
 
  private:
   void consume(TokenType type);
+  AST *ADS();
   AST *MDR();
   AST *factor();
   Lexer &lexer_;
