@@ -52,10 +52,10 @@ class AST {
 // Binary operators
 class BinOp : public AST {
  public:
-  BinOp(AST *left, Token op, AST *right);
+  BinOp(AST &left, Token op, AST &right);
 
-  AST *left;
-  AST *right;
+  AST &left;
+  AST &right;
 
   std::string toString() const;
 
