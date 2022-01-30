@@ -21,7 +21,7 @@ int run(const std::string &expr) {
   return interpreter.interpret();
 }
 
-Lexer::Lexer(const std::string &expr) : expr_(expr) {
+Lexer::Lexer(std::string expr) : expr_(std::move(expr)) {
   this->tokenStart_ = 0;
   this->tokenLen_ = 1;
 }
@@ -41,6 +41,7 @@ std::string Lexer::getCurrentTokenString() {
 }
 
 Token Lexer::nextToken() {
+  printf("next token %s %d\n", expr_.c_str(), tokenStart_);
   // Skip white space
   while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
     this->tokenStart_++;
@@ -95,7 +96,7 @@ Token Lexer::nextInteger() {
 }
 // end Lexer
 
-Parser::Parser(Lexer lexer) : lexer_(lexer) {
+Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
   this->currToken_ = this->lexer_.nextToken();
 }
 
@@ -106,6 +107,7 @@ void Parser::consume(TokenType type) {
 
 // parse : ADS
 AST *Parser::parse() {
+  printf("next token %s\n", this->lexer_.expr_.c_str());
   return this->ADS();
 }
 
@@ -169,7 +171,7 @@ AST *Parser::factor() {
 }
 // end parser
 
-Interpreter::Interpreter(Parser &parser) : parser_(parser) {}
+Interpreter::Interpreter(Parser parser) : parser_(std::move(parser)) {}
 
 int Interpreter::visit(const AST &node) const {
   printf("visiting %d \n", static_cast<int>(node.type));

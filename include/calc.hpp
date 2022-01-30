@@ -10,15 +10,15 @@ int run(const std::string &expr);
 
 class Lexer {
  public:
-  Lexer(const std::string &expr);
+  Lexer(std::string expr);
   Token nextToken();
+  const std::string expr_;
 
  private:
   bool hasMoreChars();
   bool tokenHasMoreChars();
   std::string getCurrentTokenString();
   Token nextInteger();
-  std::string expr_;
   size_t tokenStart_;
   size_t tokenLen_;
 };
@@ -33,17 +33,17 @@ class Parser {
   AST *ADS();
   AST *MDR();
   AST *factor();
-  Lexer &lexer_;
+  Lexer lexer_;
   Token currToken_;
 };
 
 class Interpreter {
  public:
-  Interpreter(Parser &parser);
+  Interpreter(Parser parser);
   int interpret();
 
  private:
-  Parser &parser_;
+  Parser parser_;
   int visit(const AST &node) const;
   int visitBinOp(const BinOp &node) const;
   int visitNum(const Num &node) const;
