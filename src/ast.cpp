@@ -31,9 +31,7 @@ std::string AST::toString() const {
 // end AST
 
 BinOp::BinOp(AST &leftVal, Token op, AST &rightVal)
-    : left(leftVal),
-      right(rightVal),
-      AST(op, ASTType::BinOp) {}
+    : left(leftVal), right(rightVal), AST(op, ASTType::BinOp) {}
 
 std::string BinOp::toString() const {
   return AST::toString() + ", left:" + this->left.token.toString() +
@@ -41,9 +39,16 @@ std::string BinOp::toString() const {
 }
 // end BinOp
 
+UnaryOp::UnaryOp(AST &node, Token op) : child(node), AST(op, ASTType::UnaryOp) {}
+
+std::string UnaryOp::toString() const {
+  return AST::toString() + ", child: " + this->child.toString();
+}
+// end UnaryOp
+
 Num::Num(Token token) : AST(token, ASTType::Num) {}
 
-std::string Num::toString() const{
+std::string Num::toString() const {
   return AST::toString();
 }
 // end Num

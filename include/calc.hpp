@@ -46,6 +46,7 @@ class Interpreter {
   Parser parser_;
   int visit(const AST &node) const;
   int visitBinOp(const BinOp &node) const;
+  int visitUnaryOp(const UnaryOp &node) const;
   int visitNum(const Num &node) const;
 };
 

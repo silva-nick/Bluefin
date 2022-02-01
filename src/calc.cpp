@@ -159,14 +159,24 @@ AST *Parser::factor() {
   Token factor = this->currToken_;
   printf("factor :%s\n", factor.toString().c_str());
 
-  if (factor.type == TokenType::PSTR) {
-    this->consume(TokenType::PSTR);
-    AST *node = parse();
-    this->consume(TokenType::PEND);
-    return node;
-  } else {
-    this->consume(TokenType::INTEGER);
-    return new Num(factor);
+  switch (factor.type) {
+    case TokenType::INTEGER:
+      this->consume(TokenType::INTEGER);
+      return new Num(factor);
+    case TokenType::PSTR: {
+      this->consume(TokenType::PSTR);
+      AST *node = parse();
+      this->consume(TokenType::PEND);
+      return node;
+    }
+    case TokenType::PLUS:
+      this->consume(TokenType::PLUS);
+      return new UnaryOp(*this->factor(), factor);
+    case TokenType::MINUS:
+      this->consume(TokenType::MINUS);
+      return new UnaryOp(*this->factor(), factor);
+    default:
+      assert(0);
   }
 }
 // end parser
@@ -178,10 +188,10 @@ int Interpreter::visit(const AST &node) const {
   switch (node.type) {
     case ASTType::BinOp:
       return visitBinOp(static_cast<const BinOp &>(node));
-      break;
     case ASTType::Num:
       return visitNum(static_cast<const Num &>(node));
-      break;
+    case ASTType::UnaryOp:
+      return visitUnaryOp(static_cast<const UnaryOp &>(node));
     default:
       assert(0);
   }
@@ -204,6 +214,19 @@ int Interpreter::visitBinOp(const BinOp &node) const {
       break;
     case TokenType::REM:
       return this->visit(node.left) % this->visit(node.right);
+      break;
+    default:
+      assert(0);
+  }
+}
+
+int Interpreter::visitUnaryOp(const UnaryOp &node) const {
+  switch (node.token.type) {
+    case TokenType::PLUS:
+      return +this->visit(node.child);
+      break;
+    case TokenType::MINUS:
+      return -this->visit(node.child);
       break;
     default:
       assert(0);

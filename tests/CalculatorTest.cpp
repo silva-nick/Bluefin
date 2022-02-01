@@ -38,4 +38,14 @@ TEST(Calculator, ParenTest) {
   EXPECT_EQ(run("5%(2+3)"), 0);
 }
 
+TEST(Calculator, UnaryTest) {
+  EXPECT_EQ(run("-1"), -1);
+
+  EXPECT_EQ(run("10-(-(-(1)))"), 9);
+
+  EXPECT_EQ(run("-2*(+2)"), -4);
+
+  EXPECT_EQ(run("5 - - - + - 3"), 8);
+}
+
 } // namespace

@@ -31,10 +31,11 @@ class Token {
   std::string getTokenTypeString() const;
 };
 
-enum class ASTType : int { BinOp = 0, Num };
-static constexpr const char *const ASTTypeStrings[2] =
-    {"BinOp", "Num"};
-
+enum class ASTType : int { BinOp = 0, Num, UnaryOp };
+static constexpr const char *const ASTTypeStrings[3] = {
+    "BinOp",
+    "Num",
+    "UnaryOp"};
 
 // Tree node parent class
 class AST {
@@ -56,6 +57,18 @@ class BinOp : public AST {
 
   AST &left;
   AST &right;
+
+  std::string toString() const;
+
+ private:
+};
+
+// Unary operators
+class UnaryOp : public AST {
+ public:
+  UnaryOp(AST &node, Token op);
+
+  AST &child;
 
   std::string toString() const;
 
