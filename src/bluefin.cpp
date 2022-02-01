@@ -1,18 +1,7 @@
-#include "calc.hpp"
+#include "bluefin.hpp"
 
 namespace bluefin {
-namespace {
-// Character types for lexeme matching
-bool isASCIILetter(const char c) {
-    return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
-}
-bool isASCIIDigit(const char c) {
-    return (c >= '0' && c <= '9');
-}
-bool isASCIILetterOrDigit(const char c) {
-    return isASCIILetter(c) || isASCIIDigit(c);
-}
-} // namespace
+namespace {} // namespace
 
 int run(const std::string &expr) {
     Lexer lexer(expr);
@@ -60,34 +49,40 @@ Token Lexer::nextToken() {
     char firstChar = this->expr_[this->tokenStart_];
     Token token;
 
-    if (isASCIIDigit(firstChar)) {
+    if (isdigit(firstChar)) {
         token = nextInteger();
-    }
-
-    switch (firstChar) {
-        case '+':
-            token = Token(TokenType::PLUS, "+");
-            break;
-        case '-':
-            token = Token(TokenType::MINUS, "-");
-            break;
-        case '*':
-            token = Token(TokenType::MULT, "*");
-            break;
-        case '/':
-            token = Token(TokenType::DIV, "/");
-            break;
-        case '%':
-            token = Token(TokenType::REM, "%");
-            break;
-        case '(':
-            token = Token(TokenType::PSTR, "(");
-            break;
-        case ')':
-            token = Token(TokenType::PEND, ")");
-            break;
-        default:
-            break;
+    } else if (isalpha(firstChar)) {
+        token = nextID();
+    } else {
+        switch (firstChar) {
+            case '=':
+                token = Token(TokenType::ASSIGN, "=");
+            case ';':
+                token = Token(TokenType::SEMI, ";");
+            case '+':
+                token = Token(TokenType::PLUS, "+");
+                break;
+            case '-':
+                token = Token(TokenType::MINUS, "-");
+                break;
+            case '*':
+                token = Token(TokenType::MULT, "*");
+                break;
+            case '/':
+                token = Token(TokenType::DIV, "/");
+                break;
+            case '%':
+                token = Token(TokenType::REM, "%");
+                break;
+            case '(':
+                token = Token(TokenType::PSTR, "(");
+                break;
+            case ')':
+                token = Token(TokenType::PEND, ")");
+                break;
+            default:
+                break;
+        }
     }
 
     this->tokenStart_ += this->tokenLen_;
@@ -98,9 +93,20 @@ Token Lexer::nextToken() {
 
 Token Lexer::nextInteger() {
     while (tokenHasMoreChars() &&
-           isASCIIDigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
+           isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
         this->tokenLen_++;
     return Token(TokenType::INTEGER, getCurrentTokenString());
+}
+
+Token Lexer::nextID() {
+    while (tokenHasMoreChars() &&
+           isalnum(this->expr_[this->tokenStart_ + this->tokenLen_]))
+        this->tokenLen_++;
+    std::string tokenString = getCurrentTokenString();
+
+    return RESERVED_KEYWORDS.count(tokenString)
+        ? RESERVED_KEYWORDS.at(tokenString)
+        : Token(TokenType::ID, getCurrentTokenString());
 }
 // end Lexer
 

@@ -1,4 +1,4 @@
-#include "../include/calc.hpp"
+#include "../include/bluefin.hpp"
 
 #include "gtest/gtest.h"
 

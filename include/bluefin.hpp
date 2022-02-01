@@ -2,11 +2,19 @@
 
 #include <assert.h>
 #include <string>
+#include <unordered_map>
 #include "ast.hpp"
 
 namespace bluefin {
 
 int run(const std::string &expr);
+
+// TODO: make this compile time?
+const std::unordered_map<std::string, Token> RESERVED_KEYWORDS = [] {
+    std::unordered_map<std::string, Token> map = {
+        {"TEST", Token(TokenType::ID, "TEST")}};
+    return map;
+}();
 
 class Lexer {
    public:
@@ -20,6 +28,7 @@ class Lexer {
     char peek();
     std::string getCurrentTokenString();
     Token nextInteger();
+    Token nextID();
     size_t tokenStart_;
     size_t tokenLen_;
 };
