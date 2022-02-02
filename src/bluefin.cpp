@@ -119,15 +119,76 @@ void Parser::consume(TokenType type) {
     this->currToken_ = this->lexer_.nextToken();
 }
 
-// parse : additive_expression
+// parse : program
 AST *Parser::parse() {
-    printf("next token %s\n", this->lexer_.expr_.c_str());
-    return this->additive();
+    AST *node = this->program();
+    assert(this->currToken_.type == TokenType::END);
+    
+    return node;
+}
+
+// program = compound_statement
+//         | program compound_statement
+AST *Parser::program() {
+    AST *node = this->compound_statement();
+    Token op = this->currToken_;
+
+    while (op.type == TokenType::BSTR) {
+        node = this->compound_statement();
+        op = this->currToken_;
+    }
+
+    printf("parsing finished\n\n");
+    return node;
+}
+
+// compound_statement = "{" statement_list "}"
+AST *Parser::compound_statement() {
+    this->consume(TokenType::BSTR);
+    std::vector<std::reference_wrapper<AST>> children = this->statement_list();
+    this->consume(TokenType::BEND);
+
+    Compound *root = new Compound();
+    for (AST &child : children) {
+        root->children.push_back(child);
+    }
+
+    return root;
+}
+
+// statement_list = statement
+//                | statement statement_list
+std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
+    AST *node = this->statement();
+    std::vector<std::reference_wrapper<AST>> result = {*node};
+
+    while (this->currToken_.type == TokenType::SEMI) {
+        this->consume(TokenType::SEMI);
+        result.push_back(*this->statement());
+    }
+
+    assert(this->currToken_.type != TokenType::ID);
+
+    return result;
+}
+
+// statement = compound_statement ";"
+//           | assignment_expression ";"
+//           | white space
+AST *Parser::statement() {
+    switch (this->currToken_.type) {
+        case TokenType::BSTR:
+            return this->compound_statement();
+        case TokenType::ID:
+            return this->assignment_expr();
+        default:
+            return new NoOp();
+    }
 }
 
 // additive_expression : multiplicative((+|-)multiplicative)*
-AST *Parser::additive() {
-    AST *node = this->multiplicative();
+AST *Parser::additive_expr() {
+    AST *node = this->multiplicative_expr();
     Token op = this->currToken_;
 
     while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
@@ -138,17 +199,16 @@ AST *Parser::additive() {
             this->consume(TokenType::MINUS);
         }
 
-        node = new BinOp(*node, op, *this->multiplicative());
+        node = new BinOp(*node, op, *this->multiplicative_expr());
         op = this->currToken_;
     }
 
-    printf("parsing finished\n\n");
     return node;
 }
 
-// multiplicative_expression : primary((*|/|%)primary)*
-AST *Parser::multiplicative() {
-    AST *node = this->primary();
+// multiplicative_expression : unary_expression((*|/|%)unary_expression)*
+AST *Parser::multiplicative_expr() {
+    AST *node = this->unary_expr();
     Token op = this->currToken_;
 
     while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
@@ -161,17 +221,36 @@ AST *Parser::multiplicative() {
         } else {
             this->consume(TokenType::REM);
         }
-        node = new BinOp(*node, op, *this->primary());
+        node = new BinOp(*node, op, *this->unary_expr());
         op = this->currToken_;
     }
 
     return node;
 }
 
-// primary_expression : Integer | LPAREN parse RPAREN
-AST *Parser::primary() {
+// unary_expression = primary_expression
+//                  | unary_operator primary_expression
+AST *Parser::unary_expr() {
+    Token op = this->currToken_;
+
+    switch (op.type) {
+        case TokenType::PLUS:
+            this->consume(TokenType::PLUS);
+            return new UnaryOp(*this->primary_expr(), op);
+        case TokenType::MINUS:
+            this->consume(TokenType::MINUS);
+            return new UnaryOp(*this->primary_expr(), op);
+        default:
+            assert(0);
+    }
+}
+
+// primary_expression = indentifier
+//                    | constant
+//                    | "(" expression ")"
+AST *Parser::primary_expr() {
     Token expr = this->currToken_;
-    printf("expr :%s\n", expr.toString().c_str());
+    printf("primary_expr :%s\n", expr.toString().c_str());
 
     switch (expr.type) {
         case TokenType::INTEGER:
@@ -179,20 +258,29 @@ AST *Parser::primary() {
             return new Num(expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
-            AST *node = parse();
+            AST *node = additive_expr();
             this->consume(TokenType::PEND);
             return node;
         }
-        case TokenType::PLUS:
-            this->consume(TokenType::PLUS);
-            return new UnaryOp(*this->primary(), expr);
-        case TokenType::MINUS:
-            this->consume(TokenType::MINUS);
-            return new UnaryOp(*this->primary(), expr);
+        case TokenType::ID:
+            this->consume(TokenType::ID);
+            return new Var(this->currToken_);
         default:
             assert(0);
     }
 }
+
+// assignment_expression = additive_expression
+//                       | unary_expression assignment_operator
+//                       assignment_expression
+AST *Parser::assignment_expr() {
+    AST *left = this->unary_expr();
+    Token assignmentOp = this->currToken_;
+    this->consume(TokenType::ASSIGN);
+    AST *right = this->additive_expr();
+    return new Assign(*left, assignmentOp, *right);
+}
+
 // end parser
 
 Interpreter::Interpreter(Parser parser) : parser_(std::move(parser)) {}

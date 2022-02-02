@@ -40,9 +40,17 @@ class Parser {
 
    private:
     void consume(TokenType type);
-    AST *additive();
-    AST *multiplicative();
-    AST *primary();
+    AST *program();
+    AST *compound_statement();
+    std::vector<std::reference_wrapper<AST>> statement_list();
+    AST *statement();
+    AST *additive_expr();
+    AST *multiplicative_expr();
+    AST *unary_expr();
+    AST *primary_expr();
+    //AST *expr();
+    AST *assignment_expr();
+
     Lexer lexer_;
     Token currToken_;
 };

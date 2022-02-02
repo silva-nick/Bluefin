@@ -30,6 +30,27 @@ std::string AST::toString() const {
 }
 // end AST
 
+Compound::Compound() {}
+
+std::string Compound::toString() const {
+    std::string out;
+    for (AST &node : this->children) {
+        out.append(node.toString());
+    }
+    return out;
+}
+// end Compound
+
+// Assignment
+Assign::Assign(AST &leftVal, Token op, AST &rightVal)
+    : left(leftVal), right(rightVal), AST(op, ASTType::Assign) {}
+
+std::string Assign::toString() const {
+    return AST::toString() + ", left:" + this->left.token.toString() +
+        ", right:" + this->right.token.toString();
+}
+// end Assign
+
 BinOp::BinOp(AST &leftVal, Token op, AST &rightVal)
     : left(leftVal), right(rightVal), AST(op, ASTType::BinOp) {}
 
@@ -46,6 +67,13 @@ std::string UnaryOp::toString() const {
     return AST::toString() + ", child: " + this->child.toString();
 }
 // end UnaryOp
+
+Var::Var(Token token) : AST(token, ASTType::Var) {}
+
+std::string Var::toString() const {
+    return AST::toString();
+}
+// end Var
 
 Num::Num(Token token) : AST(token, ASTType::Num) {}
 

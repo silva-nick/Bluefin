@@ -15,7 +15,7 @@ statement_list = statement
 
 statement = compound_statement ";" 
           | assignment_expression ";" 
-          | white space
+          | white_space
 
 additive_expression = multiplicative_expression 
                     | additive_expression + multiplicative_expression
