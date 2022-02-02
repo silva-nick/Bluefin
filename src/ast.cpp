@@ -21,6 +21,8 @@ std::string Token::getTokenTypeString() const {
 }
 // end Token
 
+AST::AST() {}
+
 AST::AST(Token value, ASTType nodeType)
     : token(std::move(value)), type(nodeType) {}
 
@@ -67,6 +69,9 @@ std::string UnaryOp::toString() const {
     return AST::toString() + ", child: " + this->child.toString();
 }
 // end UnaryOp
+
+NoOp::NoOp() {}
+// end NoOp
 
 Var::Var(Token token) : AST(token, ASTType::Var) {}
 

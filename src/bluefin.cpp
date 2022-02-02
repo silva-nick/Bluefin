@@ -123,7 +123,7 @@ void Parser::consume(TokenType type) {
 AST *Parser::parse() {
     AST *node = this->program();
     assert(this->currToken_.type == TokenType::END);
-    
+
     return node;
 }
 
@@ -299,6 +299,12 @@ int Interpreter::visit(const AST &node) const {
     }
 }
 
+int Interpreter::visitCompound(const Compound &node) const {
+    for (AST &child : node.children) {
+        this->visit(child);
+    }
+}
+
 int Interpreter::visitBinOp(const BinOp &node) const {
     printf("binop %s \n", node.token.toString().c_str());
     switch (node.token.type) {
@@ -333,6 +339,19 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) const {
         default:
             assert(0);
     }
+}
+
+int Interpreter::visitNoOp(const NoOp &node) const {
+    return 0;
+}
+
+int Interpreter::visitAssign(const Assign &node) {
+    this->GLOBAL.emplace(node.left.token.value, this->visit(node.right));
+    return 0;
+}
+
+int Interpreter::visitVar(const Var &node) const {
+    return this->GLOBAL.at(node.token.value); // throws
 }
 
 int Interpreter::visitNum(const Num &node) const {

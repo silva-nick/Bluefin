@@ -48,7 +48,7 @@ class Parser {
     AST *multiplicative_expr();
     AST *unary_expr();
     AST *primary_expr();
-    //AST *expr();
+    // AST *expr();
     AST *assignment_expr();
 
     Lexer lexer_;
@@ -61,11 +61,17 @@ class Interpreter {
     int interpret();
 
    private:
-    Parser parser_;
     int visit(const AST &node) const;
+    int visitCompound(const Compound &node) const;
     int visitBinOp(const BinOp &node) const;
     int visitUnaryOp(const UnaryOp &node) const;
+    int visitNoOp(const NoOp &node) const;
+    int visitAssign(const Assign &node);
+    int visitVar(const Var &node) const;
     int visitNum(const Num &node) const;
+
+    Parser parser_;
+    std::unordered_map<std::string, int> GLOBAL;
 };
 
 } // namespace bluefin
