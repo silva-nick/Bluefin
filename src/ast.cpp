@@ -32,7 +32,7 @@ std::string AST::toString() const {
 }
 // end AST
 
-Compound::Compound() {}
+Compound::Compound() : AST(Token(), ASTType::Compound) {}
 
 std::string Compound::toString() const {
     std::string out;
@@ -70,7 +70,7 @@ std::string UnaryOp::toString() const {
 }
 // end UnaryOp
 
-NoOp::NoOp() {}
+NoOp::NoOp() : AST(Token(), ASTType::NoOp) {}
 // end NoOp
 
 Var::Var(Token token) : AST(token, ASTType::Var) {}

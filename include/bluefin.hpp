@@ -59,16 +59,16 @@ class Interpreter {
    public:
     Interpreter(Parser parser);
     int interpret();
+    std::string toString() const;
 
    private:
-    int visit(const AST &node) const;
-    int visitCompound(const Compound &node) const;
-    int visitBinOp(const BinOp &node) const;
-    int visitUnaryOp(const UnaryOp &node) const;
-    int visitNoOp(const NoOp &node) const;
+    int visit(const AST &node);
+    int visitCompound(const Compound &node);
+    int visitBinOp(const BinOp &node);
+    int visitUnaryOp(const UnaryOp &node);
     int visitAssign(const Assign &node);
-    int visitVar(const Var &node) const;
-    int visitNum(const Num &node) const;
+    int visitVar(const Var &node);
+    int visitNum(const Num &node);
 
     Parser parser_;
     std::unordered_map<std::string, int> GLOBAL;

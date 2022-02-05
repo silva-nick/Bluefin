@@ -38,7 +38,6 @@ std::string Lexer::getCurrentTokenString() {
 }
 
 Token Lexer::nextToken() {
-    printf("next token %s %d\n", expr_.c_str(), tokenStart_);
     // Skip white space
     while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
         this->tokenStart_++;
@@ -57,8 +56,16 @@ Token Lexer::nextToken() {
         switch (firstChar) {
             case '=':
                 token = Token(TokenType::ASSIGN, "=");
+                break;
             case ';':
                 token = Token(TokenType::SEMI, ";");
+                break;
+            case '{':
+                token = Token(TokenType::BSTR, "{");
+                break;
+            case '}':
+                token = Token(TokenType::BEND, "}");
+                break;
             case '+':
                 token = Token(TokenType::PLUS, "+");
                 break;
@@ -85,6 +92,12 @@ Token Lexer::nextToken() {
         }
     }
 
+    printf(
+        "next token %s %d %d\n",
+        token.toString().c_str(),
+        tokenStart_,
+        tokenLen_);
+
     this->tokenStart_ += this->tokenLen_;
     this->tokenLen_ = 1;
 
@@ -99,8 +112,11 @@ Token Lexer::nextInteger() {
 }
 
 Token Lexer::nextID() {
+    char nextChar;
     while (tokenHasMoreChars() &&
-           isalnum(this->expr_[this->tokenStart_ + this->tokenLen_]))
+               (nextChar = this->expr_[this->tokenStart_ + this->tokenLen_]) ==
+                   '_' ||
+           isalnum(nextChar))
         this->tokenLen_++;
     std::string tokenString = getCurrentTokenString();
 
@@ -241,7 +257,7 @@ AST *Parser::unary_expr() {
             this->consume(TokenType::MINUS);
             return new UnaryOp(*this->primary_expr(), op);
         default:
-            assert(0);
+            return this->primary_expr();
     }
 }
 
@@ -264,7 +280,7 @@ AST *Parser::primary_expr() {
         }
         case TokenType::ID:
             this->consume(TokenType::ID);
-            return new Var(this->currToken_);
+            return new Var(expr);
         default:
             assert(0);
     }
@@ -275,8 +291,10 @@ AST *Parser::primary_expr() {
 //                       assignment_expression
 AST *Parser::assignment_expr() {
     AST *left = this->unary_expr();
+
     Token assignmentOp = this->currToken_;
     this->consume(TokenType::ASSIGN);
+
     AST *right = this->additive_expr();
     return new Assign(*left, assignmentOp, *right);
 }
@@ -285,28 +303,50 @@ AST *Parser::assignment_expr() {
 
 Interpreter::Interpreter(Parser parser) : parser_(std::move(parser)) {}
 
-int Interpreter::visit(const AST &node) const {
+std::string Interpreter::toString() const {
+    std::string out;
+
+    for (const auto &x : this->GLOBAL) {
+        out += x.first + ": " + std::to_string(x.second) + "\n";
+    }
+
+    return out;
+}
+
+int Interpreter::visit(const AST &node) {
     printf("visiting %d \n", static_cast<int>(node.type));
     switch (node.type) {
+        case ASTType::Var:
+            return visitVar(static_cast<const Var &>(node));
+        case ASTType::Assign:
+            return visitAssign(static_cast<const Assign &>(node));
         case ASTType::BinOp:
             return visitBinOp(static_cast<const BinOp &>(node));
+        case ASTType::NoOp:
+            return 0;
         case ASTType::Num:
             return visitNum(static_cast<const Num &>(node));
         case ASTType::UnaryOp:
             return visitUnaryOp(static_cast<const UnaryOp &>(node));
+        case ASTType::Compound:
+            return visitCompound(static_cast<const Compound &>(node));
         default:
             assert(0);
     }
 }
 
-int Interpreter::visitCompound(const Compound &node) const {
+int Interpreter::visitCompound(const Compound &node) {
+    printf("%s\n", node.toString().c_str());
+
     for (AST &child : node.children) {
         this->visit(child);
     }
+    return 0;
 }
 
-int Interpreter::visitBinOp(const BinOp &node) const {
-    printf("binop %s \n", node.token.toString().c_str());
+int Interpreter::visitBinOp(const BinOp &node) {
+    printf("%s\n", node.toString().c_str());
+
     switch (node.token.type) {
         case TokenType::PLUS:
             return this->visit(node.left) + this->visit(node.right);
@@ -328,7 +368,9 @@ int Interpreter::visitBinOp(const BinOp &node) const {
     }
 }
 
-int Interpreter::visitUnaryOp(const UnaryOp &node) const {
+int Interpreter::visitUnaryOp(const UnaryOp &node) {
+    printf("%s\n", node.toString().c_str());
+
     switch (node.token.type) {
         case TokenType::PLUS:
             return +this->visit(node.child);
@@ -341,31 +383,35 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) const {
     }
 }
 
-int Interpreter::visitNoOp(const NoOp &node) const {
-    return 0;
-}
-
 int Interpreter::visitAssign(const Assign &node) {
+    printf("%s\n", node.toString().c_str());
+
     this->GLOBAL.emplace(node.left.token.value, this->visit(node.right));
     return 0;
 }
 
-int Interpreter::visitVar(const Var &node) const {
+int Interpreter::visitVar(const Var &node) {
+    printf("%s\n", node.toString().c_str());
+
     return this->GLOBAL.at(node.token.value); // throws
 }
 
-int Interpreter::visitNum(const Num &node) const {
-    printf("leaf %s \n", node.token.toString().c_str());
+int Interpreter::visitNum(const Num &node) {
+    printf("%s\n", node.toString().c_str());
+
     return std::stoi(node.token.value);
 }
 
 int Interpreter::interpret() {
     // search for new keyword
     AST *root = this->parser_.parse();
-
     printf("root node %s \n", root->token.toString().c_str());
 
-    return this->visit(*root);
+    this->visit(*root);
+
+    printf("symbol table \n%s \n", this->toString().c_str());
+
+    return 0;
 }
 // end interpreter
 
