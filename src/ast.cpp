@@ -73,6 +73,22 @@ std::string UnaryOp::toString() const {
 NoOp::NoOp() : AST(Token(), ASTType::NoOp) {}
 // end NoOp
 
+VarDecl::VarDecl(AST &typeNode, AST &varNode, AST &rhsNode)
+    : type(typeNode), id(varNode), expr(rhsNode), AST(Token(), ASTType::VarDecl) {}
+
+std::string VarDecl::toString() const {
+    return AST::toString() + ", type: " + this->type.toString() +
+        ", id: " + this->id.toString() + ", expr: " + this->expr.toString();
+}
+// end VarDecl
+
+Type::Type(Token token) : AST(token, ASTType::Type) {}
+
+std::string Type::toString() const {
+    return AST::toString();
+}
+// end Type
+
 Var::Var(Token token) : AST(token, ASTType::Var) {}
 
 std::string Var::toString() const {

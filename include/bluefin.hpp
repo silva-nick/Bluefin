@@ -12,7 +12,8 @@ int run(const std::string &expr);
 // TODO: make this compile time?
 const std::unordered_map<std::string, Token> RESERVED_KEYWORDS = [] {
     std::unordered_map<std::string, Token> map = {
-        {"TEST", Token(TokenType::ID, "TEST")}};
+        {"int", Token(TokenType::INTEGER, "int")},
+        {"double", Token(TokenType::DOUBLE, "double")}};
     return map;
 }();
 
@@ -27,7 +28,9 @@ class Lexer {
     bool tokenHasMoreChars();
     char peek();
     std::string getCurrentTokenString();
-    Token nextInteger();
+    void skipWhitespace();
+    void skipComment();
+    Token nextNumber();
     Token nextID();
     size_t tokenStart_;
     size_t tokenLen_;
@@ -48,8 +51,9 @@ class Parser {
     AST *multiplicative_expr();
     AST *unary_expr();
     AST *primary_expr();
-    // AST *expr();
     AST *assignment_expr();
+    AST *declaration();
+    AST *type_spec();
 
     Lexer lexer_;
     Token currToken_;

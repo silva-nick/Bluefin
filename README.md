@@ -24,6 +24,7 @@ additive_expression = multiplicative_expression
 multiplicative_expression = unary_expression
                           | multiplicative_expression * unary_expression
                           | multiplicative_expression / unary_expression
+                          | multiplicative_expression // unary_expression
                           | multiplicative_expression % unary_expression
 
 unary_expression = primary_expression
@@ -40,7 +41,13 @@ assignment_expression = additive_expression
 
 identifier = alphabetic character (alphanumeric character)*
 
-constant = integer
+declaration = {type_specifier}+ identifier "=" assignment_expression ";"
+
+type_specifier = int
+               | double
+
+constant = integer      
+         | double
 
 assignment_operator = =
 

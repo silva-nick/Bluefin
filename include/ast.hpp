@@ -14,15 +14,19 @@ enum class TokenType : int {
     PEND,
     SEMI,
     INTEGER,
+    INTEGER_CONST,
+    DOUBLE,
+    DOUBLE_CONST,
     ID,
     ASSIGN,
     PLUS,
     MINUS,
     MULT,
+    INT_DIV,
     DIV,
-    REM
+    REM,
 };
-static constexpr const char *const TokenTypeStrings[14] = {
+static constexpr const char *const TokenTypeStrings[18] = {
     "END",
     "BSTR",
     "BEND",
@@ -30,12 +34,16 @@ static constexpr const char *const TokenTypeStrings[14] = {
     "PEND",
     "SEMI",
     "INTEGER",
+    "INTEGER_CONST",
+    "DOUBLE",
+    "DOUBLE_CONST",
     "ID",
     "ASSIGN",
     "PLUS",
     "MINUS",
     "MULT",
     "DIV",
+    "INT_DIV",
     "REM"};
 
 // Token definition
@@ -58,11 +66,22 @@ enum class ASTType : int {
     BinOp,
     UnaryOp,
     NoOp,
+    VarDecl,
+    Type,
     Var,
     Num
 };
-static constexpr const char *const ASTTypeStrings[8] =
-    {"Program", "Compound", "Assign", "BinOp", "UnaryOp", "NoOp", "Var", "Num"};
+static constexpr const char *const ASTTypeStrings[10] = {
+    "Program",
+    "Compound",
+    "Assign",
+    "BinOp",
+    "UnaryOp",
+    "NoOp",
+    "VarDecl",
+    "Type",
+    "Var",
+    "Num"};
 
 // Tree node parent class
 class AST {
@@ -144,6 +163,30 @@ class UnaryOp : public AST {
 class NoOp : public AST {
    public:
     NoOp();
+
+   private:
+};
+
+// Variable declaration node
+class VarDecl : public AST {
+   public:
+    VarDecl(AST &typeNode, AST &varNode, AST &rhsNode);
+
+    std::string toString() const;
+
+    AST &type;
+    AST &id;
+    AST &expr;
+
+   private:
+};
+
+// Variable types
+class Type : public AST {
+   public:
+    Type(Token token);
+
+    std::string toString() const;
 
    private:
 };

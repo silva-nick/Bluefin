@@ -38,9 +38,8 @@ std::string Lexer::getCurrentTokenString() {
 }
 
 Token Lexer::nextToken() {
-    // Skip white space
-    while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
-        this->tokenStart_++;
+    this->skipWhitespace();
+
     if (!hasMoreChars()) {
         return Token();
     }
@@ -49,9 +48,13 @@ Token Lexer::nextToken() {
     Token token;
 
     if (isdigit(firstChar)) {
-        token = nextInteger();
+        token = nextNumber();
     } else if (isalpha(firstChar)) {
         token = nextID();
+    } else if (firstChar == '\\' && this->peek() == '*') {
+        this->tokenStart_ += 2;
+        this->skipComment();
+        return this->nextToken();
     } else {
         switch (firstChar) {
             case '=':
@@ -76,7 +79,10 @@ Token Lexer::nextToken() {
                 token = Token(TokenType::MULT, "*");
                 break;
             case '/':
-                token = Token(TokenType::DIV, "/");
+                if (this->peek() == '/')
+                    token = Token(TokenType::INT_DIV, "//");
+                else
+                    token = Token(TokenType::DIV, "/");
                 break;
             case '%':
                 token = Token(TokenType::REM, "%");
@@ -104,11 +110,32 @@ Token Lexer::nextToken() {
     return token;
 }
 
-Token Lexer::nextInteger() {
+void Lexer::skipWhitespace() {
+    while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
+        this->tokenStart_++;
+}
+
+void Lexer::skipComment() {
+    while (hasMoreChars() && this->expr_[this->tokenStart_] != '*' &&
+           this->peek() != '\\')
+        this->tokenStart_++;
+}
+
+Token Lexer::nextNumber() {
     while (tokenHasMoreChars() &&
            isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
         this->tokenLen_++;
-    return Token(TokenType::INTEGER, getCurrentTokenString());
+
+    if (tokenHasMoreChars() &&
+        this->expr_[this->tokenStart_ + this->tokenLen_] == '.') {
+        while (tokenHasMoreChars() &&
+               isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
+            this->tokenLen_++;
+
+        return Token(TokenType::DOUBLE_CONST, getCurrentTokenString());
+    } else {
+        return Token(TokenType::INTEGER_CONST, getCurrentTokenString());
+    }
 }
 
 Token Lexer::nextID() {
@@ -128,6 +155,8 @@ Token Lexer::nextID() {
 
 Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
     this->currToken_ = this->lexer_.nextToken();
+
+    printf("\nPARSING...\n");
 }
 
 void Parser::consume(TokenType type) {
@@ -154,7 +183,7 @@ AST *Parser::program() {
         op = this->currToken_;
     }
 
-    printf("parsing finished\n\n");
+    printf("parsing finished\n");
     return node;
 }
 
@@ -195,6 +224,10 @@ AST *Parser::statement() {
     switch (this->currToken_.type) {
         case TokenType::BSTR:
             return this->compound_statement();
+        case TokenType::INTEGER: // This seems like bad code
+            return this->declaration();
+        case TokenType::DOUBLE:
+            return this->declaration();
         case TokenType::ID:
             return this->assignment_expr();
         default:
@@ -234,6 +267,8 @@ AST *Parser::multiplicative_expr() {
             this->consume(TokenType::MULT);
         } else if (op.type == TokenType::DIV) {
             this->consume(TokenType::DIV);
+        } else if (op.type == TokenType::INT_DIV) {
+            this->consume(TokenType::INT_DIV);
         } else {
             this->consume(TokenType::REM);
         }
@@ -269,8 +304,11 @@ AST *Parser::primary_expr() {
     printf("primary_expr :%s\n", expr.toString().c_str());
 
     switch (expr.type) {
-        case TokenType::INTEGER:
-            this->consume(TokenType::INTEGER);
+        case TokenType::INTEGER_CONST:
+            this->consume(TokenType::INTEGER_CONST);
+            return new Num(expr);
+        case TokenType::DOUBLE_CONST:
+            this->consume(TokenType::DOUBLE_CONST);
             return new Num(expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
@@ -290,6 +328,13 @@ AST *Parser::primary_expr() {
 //                       | unary_expression assignment_operator
 //                       assignment_expression
 AST *Parser::assignment_expr() {
+    Token lhs = this->currToken_;
+
+    if (lhs.type == TokenType::INTEGER_CONST ||
+        lhs.type == TokenType::DOUBLE_CONST) {
+        return additive_expr();
+    }
+
     AST *left = this->unary_expr();
 
     Token assignmentOp = this->currToken_;
@@ -297,6 +342,40 @@ AST *Parser::assignment_expr() {
 
     AST *right = this->additive_expr();
     return new Assign(*left, assignmentOp, *right);
+}
+
+// declaration = {type_specifier}+ identifier "=" assignment_expression ";"
+AST *Parser::declaration() {
+    AST *type = this->type_spec();
+
+    AST *id = new Var(this->currToken_);
+    this->consume(TokenType::ID);
+
+    // This should be removed for null declaration
+    this->consume(TokenType::ASSIGN);
+
+    AST *rhs = this->assignment_expr();
+
+    return new VarDecl(*type, *id, *rhs);
+}
+
+// type_specifier = int
+//                | double
+AST *Parser::type_spec() {
+    Token type = this->currToken_;
+
+    switch (type.type) {
+        case TokenType::INTEGER:
+            this->consume(TokenType::INTEGER);
+            break;
+        case TokenType::DOUBLE:
+            this->consume(TokenType::DOUBLE);
+            break;
+        default:
+            assert(0);
+    }
+
+    return new Type(type);
 }
 
 // end parser
@@ -360,6 +439,9 @@ int Interpreter::visitBinOp(const BinOp &node) {
         case TokenType::DIV:
             return this->visit(node.left) / this->visit(node.right);
             break;
+        case TokenType::INT_DIV:
+            return (double)this->visit(node.left) / this->visit(node.right);
+            break;
         case TokenType::REM:
             return this->visit(node.left) % this->visit(node.right);
             break;
@@ -405,6 +487,8 @@ int Interpreter::visitNum(const Num &node) {
 int Interpreter::interpret() {
     // search for new keyword
     AST *root = this->parser_.parse();
+
+    printf("\nINTERPRETING...\n");
     printf("root node %s \n", root->token.toString().c_str());
 
     this->visit(*root);
