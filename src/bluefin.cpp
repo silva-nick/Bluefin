@@ -25,6 +25,7 @@ bool Lexer::tokenHasMoreChars() {
     return this->tokenStart_ + this->tokenLen_ < this->expr_.length();
 }
 
+// Returns the next char in the expression
 char Lexer::peek() {
     if (tokenHasMoreChars()) {
         return this->expr_[this->tokenStart_ + this->tokenLen_];
@@ -51,7 +52,7 @@ Token Lexer::nextToken() {
         token = nextNumber();
     } else if (isalpha(firstChar)) {
         token = nextID();
-    } else if (firstChar == '\\' && this->peek() == '*') {
+    } else if (firstChar == '/' && this->peek() == '*') {
         this->tokenStart_ += 2;
         this->skipComment();
         return this->nextToken();
@@ -117,8 +118,10 @@ void Lexer::skipWhitespace() {
 
 void Lexer::skipComment() {
     while (hasMoreChars() && this->expr_[this->tokenStart_] != '*' &&
-           this->peek() != '\\')
+           this->peek() != '/')
         this->tokenStart_++;
+
+    this->tokenStart_ += 2;
 }
 
 Token Lexer::nextNumber() {
@@ -138,13 +141,18 @@ Token Lexer::nextNumber() {
     }
 }
 
-Token Lexer::nextID() {
+// ID: ([a-zA-Z]|_)*
+bool Lexer::isNextCharID() {
     char nextChar;
-    while (tokenHasMoreChars() &&
-               (nextChar = this->expr_[this->tokenStart_ + this->tokenLen_]) ==
-                   '_' ||
-           isalnum(nextChar))
+    return tokenHasMoreChars() &&
+        ((nextChar = this->expr_[this->tokenStart_ + this->tokenLen_]) == '_' ||
+         isalnum(nextChar));
+}
+
+Token Lexer::nextID() {
+    while (isNextCharID())
         this->tokenLen_++;
+
     std::string tokenString = getCurrentTokenString();
 
     return RESERVED_KEYWORDS.count(tokenString)
@@ -160,8 +168,8 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 }
 
 void Parser::consume(TokenType type) {
-    if (type != this->currToken_.type)
-        printf("SETSETSET: %s\n", TokenTypeStrings[static_cast<int>(this->currToken_.type)]);
+    // if (type != this->currToken_.type) printf("Consume: %s\n",
+    //     TokenTypeStrings[static_cast<int>(type)]);
     assert(type == this->currToken_.type);
     this->currToken_ = this->lexer_.nextToken();
 }
@@ -170,7 +178,8 @@ void Parser::consume(TokenType type) {
 AST *Parser::parse() {
     AST *node = this->program();
     assert(this->currToken_.type == TokenType::END);
-
+    
+    printf("parsing finished\n");
     return node;
 }
 
@@ -185,7 +194,6 @@ AST *Parser::program() {
         op = this->currToken_;
     }
 
-    printf("parsing finished\n");
     return node;
 }
 

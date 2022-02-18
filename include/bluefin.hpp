@@ -31,6 +31,7 @@ class Lexer {
     void skipWhitespace();
     void skipComment();
     Token nextNumber();
+    bool isNextCharID();
     Token nextID();
     size_t tokenStart_;
     size_t tokenLen_;
