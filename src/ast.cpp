@@ -32,6 +32,17 @@ std::string AST::toString() const {
 }
 // end AST
 
+Program::Program() : AST(Token(), ASTType::Program) {}
+
+std::string Program::toString() const {
+    std::string out;
+    for (AST &node : this->blocks) {
+        out.append(node.toString());
+    }
+    return out;
+}
+// end Program
+
 Compound::Compound() : AST(Token(), ASTType::Compound) {}
 
 std::string Compound::toString() const {
@@ -77,7 +88,7 @@ VarDecl::VarDecl(AST &typeNode, AST &varNode, AST &rhsNode)
     : type(typeNode), id(varNode), expr(rhsNode), AST(Token(), ASTType::VarDecl) {}
 
 std::string VarDecl::toString() const {
-    return AST::toString() + ", type: " + this->type.toString() +
+    return AST::toString() + ", type_val: " + this->type.toString() +
         ", id: " + this->id.toString() + ", expr: " + this->expr.toString();
 }
 // end VarDecl

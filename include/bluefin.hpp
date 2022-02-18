@@ -67,10 +67,13 @@ class Interpreter {
 
    private:
     int visit(const AST &node);
+    int visitProgram(const Program &node);
     int visitCompound(const Compound &node);
     int visitBinOp(const BinOp &node);
     int visitUnaryOp(const UnaryOp &node);
     int visitAssign(const Assign &node);
+    int visitVarDecl(const VarDecl &node);
+    int visitType(const Type &node);
     int visitVar(const Var &node);
     int visitNum(const Num &node);
 

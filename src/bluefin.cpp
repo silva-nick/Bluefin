@@ -127,7 +127,7 @@ Token Lexer::nextNumber() {
         this->tokenLen_++;
 
     if (tokenHasMoreChars() &&
-        this->expr_[this->tokenStart_ + this->tokenLen_] == '.') {
+        this->expr_[this->tokenStart_ + this->tokenLen_++] == '.') {
         while (tokenHasMoreChars() &&
                isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
             this->tokenLen_++;
@@ -160,6 +160,8 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 }
 
 void Parser::consume(TokenType type) {
+    if (type != this->currToken_.type)
+        printf("SETSETSET: %s\n", TokenTypeStrings[static_cast<int>(this->currToken_.type)]);
     assert(type == this->currToken_.type);
     this->currToken_ = this->lexer_.nextToken();
 }
@@ -175,11 +177,11 @@ AST *Parser::parse() {
 // program = compound_statement
 //         | program compound_statement
 AST *Parser::program() {
-    AST *node = this->compound_statement();
+    Program *node = new Program();
     Token op = this->currToken_;
 
     while (op.type == TokenType::BSTR) {
-        node = this->compound_statement();
+        node->blocks.push_back(*this->compound_statement());
         op = this->currToken_;
     }
 
@@ -330,6 +332,8 @@ AST *Parser::primary_expr() {
 AST *Parser::assignment_expr() {
     Token lhs = this->currToken_;
 
+    // This currently is a hacky fix
+    // need to find a way for it to parse int x = a+2;
     if (lhs.type == TokenType::INTEGER_CONST ||
         lhs.type == TokenType::DOUBLE_CONST) {
         return additive_expr();
@@ -344,19 +348,23 @@ AST *Parser::assignment_expr() {
     return new Assign(*left, assignmentOp, *right);
 }
 
-// declaration = {type_specifier}+ identifier "=" assignment_expression ";"
+// declaration = {type_specifier}+ identifier ("=" assignment_expression)? ";"
 AST *Parser::declaration() {
     AST *type = this->type_spec();
 
     AST *id = new Var(this->currToken_);
     this->consume(TokenType::ID);
 
-    // This should be removed for null declaration
-    this->consume(TokenType::ASSIGN);
+    if (this->currToken_.type == TokenType::ASSIGN) {
+        // This should be removed for null declaration
+        this->consume(TokenType::ASSIGN);
 
-    AST *rhs = this->assignment_expr();
-
-    return new VarDecl(*type, *id, *rhs);
+        AST *rhs = this->assignment_expr();
+        return new VarDecl(*type, *id, *rhs);
+    } else {
+        AST *null = new AST();
+        return new VarDecl(*type, *id, *null);
+    }
 }
 
 // type_specifier = int
@@ -393,25 +401,40 @@ std::string Interpreter::toString() const {
 }
 
 int Interpreter::visit(const AST &node) {
-    printf("visiting %d \n", static_cast<int>(node.type));
+    printf("visiting %s \n", ASTTypeStrings[static_cast<int>(node.type)]);
     switch (node.type) {
-        case ASTType::Var:
-            return visitVar(static_cast<const Var &>(node));
-        case ASTType::Assign:
-            return visitAssign(static_cast<const Assign &>(node));
-        case ASTType::BinOp:
-            return visitBinOp(static_cast<const BinOp &>(node));
-        case ASTType::NoOp:
-            return 0;
-        case ASTType::Num:
-            return visitNum(static_cast<const Num &>(node));
-        case ASTType::UnaryOp:
-            return visitUnaryOp(static_cast<const UnaryOp &>(node));
+        case ASTType::Program:
+            return visitProgram(static_cast<const Program &>(node));
         case ASTType::Compound:
             return visitCompound(static_cast<const Compound &>(node));
+        case ASTType::BinOp:
+            return visitBinOp(static_cast<const BinOp &>(node));
+        case ASTType::UnaryOp:
+            return visitUnaryOp(static_cast<const UnaryOp &>(node));
+        case ASTType::NoOp:
+            return 0;
+        case ASTType::Assign:
+            return visitAssign(static_cast<const Assign &>(node));
+        case ASTType::VarDecl:
+            return visitVarDecl(static_cast<const VarDecl &>(node));
+        case ASTType::Type:
+            return visitType(static_cast<const Type &>(node));
+        case ASTType::Var:
+            return visitVar(static_cast<const Var &>(node));
+        case ASTType::Num:
+            return visitNum(static_cast<const Num &>(node));
         default:
             assert(0);
     }
+}
+
+int Interpreter::visitProgram(const Program &node) {
+    printf("%s\n", node.toString().c_str());
+
+    for (AST &block : node.blocks) {
+        this->visit(block);
+    }
+    return 0;
 }
 
 int Interpreter::visitCompound(const Compound &node) {
@@ -469,6 +492,24 @@ int Interpreter::visitAssign(const Assign &node) {
     printf("%s\n", node.toString().c_str());
 
     this->GLOBAL.emplace(node.left.token.value, this->visit(node.right));
+    return 0;
+}
+
+int Interpreter::visitVarDecl(const VarDecl &node) {
+    printf("%s\n", node.toString().c_str());
+
+    if (node.expr.token.type == TokenType::END) {
+        this->GLOBAL.emplace(node.id.token.value, -999);
+    } else {
+        this->GLOBAL.emplace(node.id.token.value, this->visit(node.expr));
+    }
+
+    return 0;
+}
+
+int Interpreter::visitType(const Type &node) {
+    printf("%s\n", node.toString().c_str());
+
     return 0;
 }
 

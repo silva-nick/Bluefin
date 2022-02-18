@@ -10,7 +10,7 @@ void run_parser(const std::string &input);
 
 int main(int argc, char *argv[]) {
     std::cout << "> hello" << std::endl;
-    std::cout << run("{int g_=10;}") << std::endl;
+    std::cout << run("{double g_=0.1;}") << std::endl;
 
     while (true) {
         // Read
