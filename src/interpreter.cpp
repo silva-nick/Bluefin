@@ -3,7 +3,14 @@
 namespace bluefin {
 namespace {} // namespace
 
-Interpreter::Interpreter(Parser parser) : parser_(std::move(parser)) {}
+ASTTraverser::ASTTraverser() {}
+
+ASTTraverser::ASTTraverser(AST *root) {
+    this->root_ = root;
+}
+// end ASTTraverser
+
+Interpreter::Interpreter(AST *root) : ASTTraverser(root) {}
 
 std::string Interpreter::toString() const {
     std::string out;
@@ -141,18 +148,52 @@ int Interpreter::visitNum(const Num &node) {
 }
 
 int Interpreter::interpret() {
-    // search for new keyword
-    AST *root = this->parser_.parse();
-
     printf("\nINTERPRETING...\n");
-    printf("root node %s \n", root->token.toString().c_str());
 
-    this->visit(*root);
+    printf("root node %s \n", this->root_->token.toString().c_str());
+
+    this->visit(*this->root_);
 
     printf("symbol table \n%s \n", this->toString().c_str());
 
     return 0;
 }
 // end interpreter
+
+Symbol::Symbol(std::string name, std::string type) {}
+std::string Symbol::toString() {
+    return "Symbol<" + name + ", " + type + ">\n";
+}
+BuiltinTypeSymbol::BuiltinTypeSymbol(std::string name) : Symbol(name, "") {}
+VarSymbol::VarSymbol(std::string name, std::string type) : Symbol(name, type) {}
+// end Symbol
+
+SymbolTable::SymbolTable() {}
+
+std::string SymbolTable::toString() {
+    return "";
+}
+void SymbolTable::define(Symbol &symbol) {}
+int SymbolTable::lookup(std::string name) {
+    return -1;
+}
+void SymbolTable::initBuiltins() {}
+// end SymbolTable
+
+SymbolTableBuilder::SymbolTableBuilder(AST *root) : ASTTraverser(root) {}
+std::string SymbolTableBuilder::toString() const {
+    return "";
+}
+int SymbolTableBuilder::visit(const AST &node) {}
+int SymbolTableBuilder::visitProgram(const Program &node) {}
+int SymbolTableBuilder::visitCompound(const Compound &node) {}
+int SymbolTableBuilder::visitBinOp(const BinOp &node) {}
+int SymbolTableBuilder::visitUnaryOp(const UnaryOp &node) {}
+int SymbolTableBuilder::visitAssign(const Assign &node) {}
+int SymbolTableBuilder::visitVarDecl(const VarDecl &node) {}
+int SymbolTableBuilder::visitType(const Type &node) {}
+int SymbolTableBuilder::visitVar(const Var &node) {}
+int SymbolTableBuilder::visitNum(const Num &node) {}
+// end SymbolTableBuilder
 
 } // namespace bluefin

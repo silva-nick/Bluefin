@@ -60,9 +60,30 @@ class Parser {
     Token currToken_;
 };
 
-class Interpreter {
+class ASTTraverser {
    public:
-    Interpreter(Parser parser);
+    ASTTraverser();
+    ASTTraverser(AST *root);
+
+   protected:
+    AST *root_;
+
+   private:
+    virtual int visit(const AST &node);
+    virtual int visitProgram(const Program &node);
+    virtual int visitCompound(const Compound &node);
+    virtual int visitBinOp(const BinOp &node);
+    virtual int visitUnaryOp(const UnaryOp &node);
+    virtual int visitAssign(const Assign &node);
+    virtual int visitVarDecl(const VarDecl &node);
+    virtual int visitType(const Type &node);
+    virtual int visitVar(const Var &node);
+    virtual int visitNum(const Num &node);
+};
+
+class Interpreter : ASTTraverser {
+   public:
+    Interpreter(AST *root);
     int interpret();
     std::string toString() const;
 
@@ -78,8 +99,57 @@ class Interpreter {
     int visitVar(const Var &node);
     int visitNum(const Num &node);
 
-    Parser parser_;
     std::unordered_map<std::string, int> GLOBAL;
+};
+
+class Symbol {
+   public:
+    Symbol(std::string name, std::string type);
+    std::string toString();
+    std::string name;
+    std::string type;
+};
+
+class BuiltinTypeSymbol : Symbol {
+   public:
+    BuiltinTypeSymbol(std::string name);
+};
+
+class VarSymbol : Symbol {
+   public:
+    VarSymbol(std::string name, std::string type);
+};
+
+class SymbolTable {
+   public:
+    SymbolTable();
+    std::string toString();
+    void define(Symbol &symbol);
+    int lookup(std::string name);
+
+   private:
+    void initBuiltins();
+    std::unordered_map<std::string, int> symbols_;
+};
+
+class SymbolTableBuilder : ASTTraverser {
+   public:
+    SymbolTableBuilder(AST *root);
+    std::string toString() const;
+
+   private:
+    int visit(const AST &node);
+    int visitProgram(const Program &node);
+    int visitCompound(const Compound &node);
+    int visitBinOp(const BinOp &node);
+    int visitUnaryOp(const UnaryOp &node);
+    int visitAssign(const Assign &node);
+    int visitVarDecl(const VarDecl &node);
+    int visitType(const Type &node);
+    int visitVar(const Var &node);
+    int visitNum(const Num &node);
+
+    SymbolTable symbols_;
 };
 
 } // namespace bluefin
