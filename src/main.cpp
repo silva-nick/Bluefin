@@ -21,14 +21,6 @@ int main(int argc, char *argv[]) {
         // Check for escape characters
         if (input == "q" || input == "quit") {
             break;
-        } else if (input == "l" || input == "lexer") {
-            std::cout << "> ";
-            std::getline(std::cin, input);
-            run_lexer(input);
-        } else if (input == "p" || input == "parser") {
-            std::cout << "filename: ";
-            std::getline(std::cin, input);
-            run_parser(input);
         } else {
             // Eval and print
             std::cout << run(input) << std::endl;
@@ -38,20 +30,4 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
 
     return 0;
-}
-
-void run_lexer(const std::string &input) {
-    Token token;
-    Lexer lexer(input);
-    while ((token = lexer.nextToken()).type != TokenType::END) {
-        std::cout << "nextToken(): " << token.toString() << std::endl;
-    }
-    return;
-}
-
-void run_parser(const std::string &input) {
-    Lexer lexer(input);
-    Parser parser(lexer);
-
-    AST *root = parser.parse();
 }
