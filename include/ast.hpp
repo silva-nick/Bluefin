@@ -174,7 +174,7 @@ class VarDecl : public AST {
 
     std::string toString() const;
 
-    AST &type;
+    AST &typeNode;
     AST &id;
     AST &expr;
 

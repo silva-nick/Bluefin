@@ -8,21 +8,8 @@ ASTTraverser::ASTTraverser() {}
 ASTTraverser::ASTTraverser(AST *root) {
     this->root_ = root;
 }
-// end ASTTraverser
 
-Interpreter::Interpreter(AST *root) : ASTTraverser(root) {}
-
-std::string Interpreter::toString() const {
-    std::string out;
-
-    for (const auto &x : this->GLOBAL) {
-        out += x.first + ": " + std::to_string(x.second) + "\n";
-    }
-
-    return out;
-}
-
-int Interpreter::visit(const AST &node) {
+int ASTTraverser::visit(const AST &node) {
     printf("visiting %s \n", ASTTypeStrings[static_cast<int>(node.type)]);
     switch (node.type) {
         case ASTType::Program:
@@ -49,11 +36,24 @@ int Interpreter::visit(const AST &node) {
             assert(0);
     }
 }
+// end ASTTraverser
+
+Interpreter::Interpreter(AST *root) : ASTTraverser(root) {}
+
+std::string Interpreter::toString() const {
+    std::string out = "Global vars: \n";
+
+    for (const auto &x : this->global_) {
+        out += x.first + ": " + std::to_string(x.second) + "\n";
+    }
+
+    return out;
+}
 
 int Interpreter::visitProgram(const Program &node) {
     printf("%s\n", node.toString().c_str());
 
-    for (AST &block : node.blocks) {
+    for (const AST &block : node.blocks) {
         this->visit(block);
     }
     return 0;
@@ -113,7 +113,7 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) {
 int Interpreter::visitAssign(const Assign &node) {
     printf("%s\n", node.toString().c_str());
 
-    this->GLOBAL.emplace(node.left.token.value, this->visit(node.right));
+    this->global_.emplace(node.left.token.value, this->visit(node.right));
     return 0;
 }
 
@@ -121,9 +121,9 @@ int Interpreter::visitVarDecl(const VarDecl &node) {
     printf("%s\n", node.toString().c_str());
 
     if (node.expr.token.type == TokenType::END) {
-        this->GLOBAL.emplace(node.id.token.value, -999);
+        this->global_.emplace(node.id.token.value, -999);
     } else {
-        this->GLOBAL.emplace(node.id.token.value, this->visit(node.expr));
+        this->global_.emplace(node.id.token.value, this->visit(node.expr));
     }
 
     return 0;
@@ -138,7 +138,7 @@ int Interpreter::visitType(const Type &node) {
 int Interpreter::visitVar(const Var &node) {
     printf("%s\n", node.toString().c_str());
 
-    return this->GLOBAL.at(node.token.value); // throws
+    return this->global_.at(node.token.value); // throws
 }
 
 int Interpreter::visitNum(const Num &node) {
@@ -160,40 +160,104 @@ int Interpreter::interpret() {
 }
 // end interpreter
 
-Symbol::Symbol(std::string name, std::string type) {}
-std::string Symbol::toString() {
-    return "Symbol<" + name + ", " + type + ">\n";
+Symbol::Symbol(std::string name) : name(name) {}
+Symbol::Symbol(std::string name) : name(name) {}
+
+std::string Symbol::toString() const {
+    return "Symbol<" + name + ">\n";
 }
-BuiltinTypeSymbol::BuiltinTypeSymbol(std::string name) : Symbol(name, "") {}
-VarSymbol::VarSymbol(std::string name, std::string type) : Symbol(name, type) {}
+BuiltinTypeSymbol::BuiltinTypeSymbol(std::string name) : Symbol(name) {}
+VarSymbol::VarSymbol(std::string name, Symbol type)
+    : Symbol(name), type(type) {}
 // end Symbol
 
-SymbolTable::SymbolTable() {}
+SymbolTable::SymbolTable() {
+    this->initBuiltins();
+}
 
-std::string SymbolTable::toString() {
-    return "";
+void SymbolTable::initBuiltins() {
+    this->define(BuiltinTypeSymbol("INTEGER"));
+    this->define(BuiltinTypeSymbol("DOUBLE"));
 }
-void SymbolTable::define(Symbol &symbol) {}
-int SymbolTable::lookup(std::string name) {
-    return -1;
+
+std::string SymbolTable::toString() const {
+    std::string out = "Symbol Table:\n";
+
+    for (const auto &x : this->symbols_) {
+        out += x.first + ": " + x.second.toString() + "\n";
+    }
+
+    return out;
 }
-void SymbolTable::initBuiltins() {}
+
+void SymbolTable::define(const Symbol &symbol) {
+    printf("Define: %s\n", symbol.toString().c_str());
+    this->symbols_[symbol.name] = std::move(symbol);
+}
+Symbol SymbolTable::lookup(const std::string &name) {
+    printf("Lookup: %s\n", name.c_str());
+    return this->symbols_.at(name);
+}
 // end SymbolTable
 
 SymbolTableBuilder::SymbolTableBuilder(AST *root) : ASTTraverser(root) {}
 std::string SymbolTableBuilder::toString() const {
     return "";
 }
-int SymbolTableBuilder::visit(const AST &node) {}
-int SymbolTableBuilder::visitProgram(const Program &node) {}
-int SymbolTableBuilder::visitCompound(const Compound &node) {}
-int SymbolTableBuilder::visitBinOp(const BinOp &node) {}
-int SymbolTableBuilder::visitUnaryOp(const UnaryOp &node) {}
-int SymbolTableBuilder::visitAssign(const Assign &node) {}
-int SymbolTableBuilder::visitVarDecl(const VarDecl &node) {}
-int SymbolTableBuilder::visitType(const Type &node) {}
-int SymbolTableBuilder::visitVar(const Var &node) {}
-int SymbolTableBuilder::visitNum(const Num &node) {}
+
+int SymbolTableBuilder::visitProgram(const Program &node) {
+    for (const AST &block : node.blocks) {
+        this->visit(block);
+    }
+    return 0;
+}
+
+int SymbolTableBuilder::visitCompound(const Compound &node) {
+    for (AST &child : node.children) {
+        this->visit(child);
+    }
+    return 0;
+}
+
+int SymbolTableBuilder::visitBinOp(const BinOp &node) {
+    this->visit(node.left);
+    this->visit(node.right);
+    return 0;
+}
+
+int SymbolTableBuilder::visitUnaryOp(const UnaryOp &node) {
+    this->visit(node.child);
+    return 0;
+}
+
+int SymbolTableBuilder::visitAssign(const Assign &node) {
+    std::string varName = node.left.token.value;
+    this->symbols_.lookup(varName); // Throws if var hasn't been defined
+    this->visit(node.right);
+    return 0;
+}
+
+int SymbolTableBuilder::visitVarDecl(const VarDecl &node) {
+    Symbol typeSymbol = this->symbols_.lookup(node.typeNode.token.value);
+    VarSymbol varSymbol = VarSymbol(node.id.token.value, typeSymbol);
+    this->symbols_.define(varSymbol);
+    return 0;
+}
+
+int SymbolTableBuilder::visitType(const Type &node) {
+    return 0;
+}
+
+int SymbolTableBuilder::visitVar(const Var &node) {
+    std::string varName = node.token.value;
+    this->symbols_.lookup(varName); // Throws if var hasn't been defined
+    return 0;
+}
+
+int SymbolTableBuilder::visitNum(const Num &node) {
+    return 0;
+}
+
 // end SymbolTableBuilder
 
 } // namespace bluefin

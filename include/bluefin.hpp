@@ -69,7 +69,7 @@ class ASTTraverser {
     AST *root_;
 
    private:
-    virtual int visit(const AST &node);
+    int visit(const AST &node);
     virtual int visitProgram(const Program &node);
     virtual int visitCompound(const Compound &node);
     virtual int visitBinOp(const BinOp &node);
@@ -81,7 +81,7 @@ class ASTTraverser {
     virtual int visitNum(const Num &node);
 };
 
-class Interpreter : ASTTraverser {
+class Interpreter : public ASTTraverser {
    public:
     Interpreter(AST *root);
     int interpret();
@@ -99,40 +99,40 @@ class Interpreter : ASTTraverser {
     int visitVar(const Var &node);
     int visitNum(const Num &node);
 
-    std::unordered_map<std::string, int> GLOBAL;
+    std::unordered_map<std::string, int> global_;
 };
 
 class Symbol {
    public:
-    Symbol(std::string name, std::string type);
-    std::string toString();
+    Symbol(std::string name);
+    std::string toString() const;
     std::string name;
-    std::string type;
 };
 
-class BuiltinTypeSymbol : Symbol {
+class BuiltinTypeSymbol : public Symbol {
    public:
     BuiltinTypeSymbol(std::string name);
 };
 
-class VarSymbol : Symbol {
+class VarSymbol : public Symbol {
    public:
-    VarSymbol(std::string name, std::string type);
+    VarSymbol(std::string name, Symbol type);
+    const Symbol& type;
 };
 
 class SymbolTable {
    public:
     SymbolTable();
-    std::string toString();
-    void define(Symbol &symbol);
-    int lookup(std::string name);
+    std::string toString() const;
+    void define(const Symbol &symbol);
+    Symbol lookup(const std::string &name);
 
    private:
     void initBuiltins();
-    std::unordered_map<std::string, int> symbols_;
+    std::unordered_map<std::string, Symbol> symbols_;
 };
 
-class SymbolTableBuilder : ASTTraverser {
+class SymbolTableBuilder : public ASTTraverser {
    public:
     SymbolTableBuilder(AST *root);
     std::string toString() const;
