@@ -67,18 +67,19 @@ class ASTTraverser {
 
    protected:
     AST *root_;
+    int visit(const AST &node);
+
 
    private:
-    int visit(const AST &node);
-    virtual int visitProgram(const Program &node);
-    virtual int visitCompound(const Compound &node);
-    virtual int visitBinOp(const BinOp &node);
-    virtual int visitUnaryOp(const UnaryOp &node);
-    virtual int visitAssign(const Assign &node);
-    virtual int visitVarDecl(const VarDecl &node);
-    virtual int visitType(const Type &node);
-    virtual int visitVar(const Var &node);
-    virtual int visitNum(const Num &node);
+    virtual int visitProgram(const Program &node) = 0;
+    virtual int visitCompound(const Compound &node) = 0;
+    virtual int visitBinOp(const BinOp &node) = 0;
+    virtual int visitUnaryOp(const UnaryOp &node) = 0;
+    virtual int visitAssign(const Assign &node) = 0;
+    virtual int visitVarDecl(const VarDecl &node) = 0;
+    virtual int visitType(const Type &node) = 0;
+    virtual int visitVar(const Var &node) = 0;
+    virtual int visitNum(const Num &node) = 0;
 };
 
 class Interpreter : public ASTTraverser {
@@ -88,7 +89,6 @@ class Interpreter : public ASTTraverser {
     std::string toString() const;
 
    private:
-    int visit(const AST &node);
     int visitProgram(const Program &node);
     int visitCompound(const Compound &node);
     int visitBinOp(const BinOp &node);
@@ -104,6 +104,7 @@ class Interpreter : public ASTTraverser {
 
 class Symbol {
    public:
+    Symbol(){};
     Symbol(std::string name);
     std::string toString() const;
     std::string name;
@@ -117,7 +118,8 @@ class BuiltinTypeSymbol : public Symbol {
 class VarSymbol : public Symbol {
    public:
     VarSymbol(std::string name, Symbol type);
-    const Symbol& type;
+    std::string toString() const;
+    const Symbol &type;
 };
 
 class SymbolTable {
@@ -135,10 +137,10 @@ class SymbolTable {
 class SymbolTableBuilder : public ASTTraverser {
    public:
     SymbolTableBuilder(AST *root);
+    void build();
     std::string toString() const;
 
    private:
-    int visit(const AST &node);
     int visitProgram(const Program &node);
     int visitCompound(const Compound &node);
     int visitBinOp(const BinOp &node);

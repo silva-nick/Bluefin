@@ -6,7 +6,9 @@ namespace {} // namespace
 int run(const std::string &expr) {
     Lexer lexer(expr);
     Parser parser(lexer);
-    Interpreter interpreter(parser.parse());
+    AST *root = parser.parse();
+    SymbolTableBuilder symbols(root);
+    Interpreter interpreter(root);
     return interpreter.interpret();
 }
 

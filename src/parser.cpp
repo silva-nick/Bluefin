@@ -123,7 +123,9 @@ Token Lexer::nextNumber() {
         this->tokenLen_++;
 
     if (tokenHasMoreChars() &&
-        this->expr_[this->tokenStart_ + this->tokenLen_++] == '.') {
+        this->expr_[this->tokenStart_ + this->tokenLen_] == '.') {
+        this->tokenLen_++;
+
         while (tokenHasMoreChars() &&
                isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
             this->tokenLen_++;
@@ -163,14 +165,21 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 void Parser::consume(TokenType type) {
     // if (type != this->currToken_.type) printf("Consume: %s\n",
     //     TokenTypeStrings[static_cast<int>(type)]);
-    assert(type == this->currToken_.type);
+    if (type != this->currToken_.type) {
+        throw std::invalid_argument(
+            "Parser consume failed on token" + this->currToken_.toString());
+    }
     this->currToken_ = this->lexer_.nextToken();
 }
 
 // parse : program
 AST *Parser::parse() {
     AST *node = this->program();
-    assert(this->currToken_.type == TokenType::END);
+
+    if (this->currToken_.type != TokenType::END) {
+        throw std::invalid_argument(
+            "Parser expected END instead found " + this->currToken_.toString());
+    }
 
     printf("parsing finished\n");
     return node;
@@ -215,7 +224,10 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
         result.push_back(*this->statement());
     }
 
-    assert(this->currToken_.type != TokenType::ID);
+    if (this->currToken_.type == TokenType::ID) {
+        throw new std::invalid_argument(
+            "statement_list() found ID after parsing");
+    }
 
     return result;
 }
@@ -323,7 +335,8 @@ AST *Parser::primary_expr() {
             this->consume(TokenType::ID);
             return new Var(expr);
         default:
-            assert(0);
+            throw new std::invalid_argument(
+                "Token type not primary expression: " + expr.toString());
     }
 }
 
@@ -381,7 +394,8 @@ AST *Parser::type_spec() {
             this->consume(TokenType::DOUBLE);
             break;
         default:
-            assert(0);
+            throw new std::invalid_argument(
+                "Parser found invalid type: " + type.toString());
     }
 
     return new Type(type);

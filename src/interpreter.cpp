@@ -33,7 +33,8 @@ int ASTTraverser::visit(const AST &node) {
         case ASTType::Num:
             return visitNum(static_cast<const Num &>(node));
         default:
-            assert(0);
+            throw new std::logic_error(
+                "Interpreter found invalid AST node" + node.toString());
     }
 }
 // end ASTTraverser
@@ -91,7 +92,8 @@ int Interpreter::visitBinOp(const BinOp &node) {
             return this->visit(node.left) % this->visit(node.right);
             break;
         default:
-            assert(0);
+            throw new std::logic_error(
+                "Interpreter found invalid binary op" + node.toString());
     }
 }
 
@@ -106,7 +108,8 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) {
             return -this->visit(node.child);
             break;
         default:
-            assert(0);
+            throw new std::logic_error(
+                "Interpreter found invalid unary op" + node.toString());
     }
 }
 
@@ -154,21 +157,26 @@ int Interpreter::interpret() {
 
     this->visit(*this->root_);
 
-    printf("symbol table \n%s \n", this->toString().c_str());
+    printf("\n%s \n", this->toString().c_str());
 
     return 0;
 }
 // end interpreter
 
 Symbol::Symbol(std::string name) : name(name) {}
-Symbol::Symbol(std::string name) : name(name) {}
 
 std::string Symbol::toString() const {
-    return "Symbol<" + name + ">\n";
+    return "Symbol<" + name + ">";
 }
+
 BuiltinTypeSymbol::BuiltinTypeSymbol(std::string name) : Symbol(name) {}
+
 VarSymbol::VarSymbol(std::string name, Symbol type)
     : Symbol(name), type(type) {}
+
+std::string VarSymbol::toString() const {
+    return "Symbol<" + name + ", " + type.toString() + ">";
+}
 // end Symbol
 
 SymbolTable::SymbolTable() {
@@ -176,8 +184,8 @@ SymbolTable::SymbolTable() {
 }
 
 void SymbolTable::initBuiltins() {
-    this->define(BuiltinTypeSymbol("INTEGER"));
-    this->define(BuiltinTypeSymbol("DOUBLE"));
+    this->define(BuiltinTypeSymbol("int"));
+    this->define(BuiltinTypeSymbol("double"));
 }
 
 std::string SymbolTable::toString() const {
@@ -200,9 +208,19 @@ Symbol SymbolTable::lookup(const std::string &name) {
 }
 // end SymbolTable
 
-SymbolTableBuilder::SymbolTableBuilder(AST *root) : ASTTraverser(root) {}
+SymbolTableBuilder::SymbolTableBuilder(AST *root) : ASTTraverser(root) {
+    printf("\nBUILDING SYMBOLS\n");
+    this->build();
+    printf("\n%s \n", this->toString().c_str());
+}
+
+void SymbolTableBuilder::build() {
+    this->visit(*this->root_);
+    return;
+}
+
 std::string SymbolTableBuilder::toString() const {
-    return "";
+    return this->symbols_.toString();
 }
 
 int SymbolTableBuilder::visitProgram(const Program &node) {
