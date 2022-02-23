@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include "ast.hpp"
@@ -68,7 +69,6 @@ class ASTTraverser {
    protected:
     AST *root_;
     int visit(const AST &node);
-
 
    private:
     virtual int visitProgram(const Program &node) = 0;

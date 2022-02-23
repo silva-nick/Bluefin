@@ -11,7 +11,17 @@ TEST(Syntax, NoBrackets) {
 
     EXPECT_THROW(run("int a=10;}"), std::invalid_argument);
 
-    EXPECT_THROW(run("{int a=10;"), std::invalid_argument);
+    EXPECT_THROW(run("{int a=10;"), std::invalid_argument*);
+}
+
+TEST(Syntax, BadDecl) {
+    EXPECT_THROW(run("{int a*b = 10;}"), std::invalid_argument*);
+
+    EXPECT_THROW(run("{int a12=10;}"), std::invalid_argument*);
+
+    EXPECT_THROW(run("{int a==10;}"), std::invalid_argument*);
+
+    EXPECT_THROW(run("{int a =   10}"), std::invalid_argument*);
 }
 
 } // namespace

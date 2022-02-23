@@ -141,7 +141,7 @@ bool Lexer::isNextCharID() {
     char nextChar;
     return tokenHasMoreChars() &&
         ((nextChar = this->expr_[this->tokenStart_ + this->tokenLen_]) == '_' ||
-         isalnum(nextChar));
+         isalpha(nextChar));
 }
 
 Token Lexer::nextID() {
@@ -219,14 +219,21 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
     AST *node = this->statement();
     std::vector<std::reference_wrapper<AST>> result = {*node};
 
-    while (this->currToken_.type == TokenType::SEMI) {
-        this->consume(TokenType::SEMI);
-        result.push_back(*this->statement());
+    if (this->currToken_.type != TokenType::SEMI) {
+        throw new std::invalid_argument(
+            "statement_list() statement in unexpected token" +
+            this->currToken_.toString());
     }
 
-    if (this->currToken_.type == TokenType::ID) {
+    do {
+        this->consume(TokenType::SEMI);
+        result.push_back(*this->statement());
+    } while (this->currToken_.type == TokenType::SEMI);
+
+    if (this->currToken_.type != TokenType::BEND) {
         throw new std::invalid_argument(
-            "statement_list() found ID after parsing");
+            "statement_list() ended in unexpected token" +
+            this->currToken_.toString());
     }
 
     return result;
