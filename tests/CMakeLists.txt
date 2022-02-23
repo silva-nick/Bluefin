@@ -19,6 +19,8 @@ macro(add_unittest test_name test_files test_lib)
 
     target_link_libraries(${test_name} PRIVATE gtest gmock gtest_main ${test_lib})
 
+    add_test(NAME ${test_name} COMMAND ${test_name})
+
     gtest_discover_tests(${test_name}
         WORKING_DIRECTORY ${PROJECT_DIR}
         PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
