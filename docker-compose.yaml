@@ -10,6 +10,6 @@ services:
       - ./:/usr/src/bluefin/
     stdin_open: true
     tty: true
-    working_dir: /usr/src/bluefin/build/
+    working_dir: /usr/src/bluefin/
     image: bluefin:latest
     container_name: bf

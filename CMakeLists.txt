@@ -11,21 +11,33 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_FLAGS_RELEASE_INIT "-Wall")
-set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall -Wextra -g -Wunreachable-code")
+# set default compiler flags
+set(CMAKE_CXX_FLAGS_RELEASE "-Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Wunreachable-code -pedantic -g")
 
-set(ENABLE_TEST_SUITE ON CACHE BOOL "Enable the test suite")
+# generate coverage
+option(CODE_COVERAGE "Enable Coverage report" OFF)
 
-# For IDE
-file(GLOB_RECURSE ALL_HEADER_FILES "*.hpp")
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+if (CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    #set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wunreachable-code -g -O0 --coverage")
+    set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Wunreachable-code -g -O0 --coverage")
+    set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+endif()
+
 
 add_subdirectory(src)
 
+
 # gtest
-if(ENABLE_TEST_SUITE)
+option(ENABLE_TEST_SUITE "Enable the test suite" ON)
+
+if(ENABLE_TEST_SUITE AND (PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
     enable_testing()
     include(GoogleTest)
     include(CTest)
     add_subdirectory(tests)
 endif()
+
+# For IDE
+file(GLOB_RECURSE ALL_HEADER_FILES "*.hpp")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)

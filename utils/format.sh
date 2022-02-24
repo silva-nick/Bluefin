@@ -1,3 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+
 echo "Running clang-format on all files.."
 files=(
   $(find src include tests -name \*.hpp -print -o -name \*.cpp -print)

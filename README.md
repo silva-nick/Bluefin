@@ -71,6 +71,11 @@ CC=gcc CXX=g++ cmake ..
 cmake --build build --target bluefin
 ```
 
+_Testing_
+```bash
+ctest -C Release
+```
+
 **`Debug`**
 ```bash
 cmake -S . -B build/Debug -D CMAKE_BUILD_TYPE=Debug
