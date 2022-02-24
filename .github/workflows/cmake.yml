@@ -40,8 +40,9 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
 
     # CODE COVERAGE
-    - name: Generate coverage
+    - name: Install lcov
       run: sudo apt-get install -y lcov
+    - name: Generate coverage
       run: lcov --capture --directory ./ --output-file coverage.info
     - name: Report code coverage
       uses: zgosalvez/github-actions-report-lcov@v1
