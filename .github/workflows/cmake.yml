@@ -45,7 +45,6 @@ jobs:
     - name: Generate coverage
       run: lcov --capture --directory ${{github.workspace}}/build/coverage --output-file coverage.info
     - name: Report code coverage
-      working-directory: ${{github.workspace}}/build
       uses: zgosalvez/github-actions-report-lcov@v1
       with:
         coverage-files: /coverage/coverage.info
