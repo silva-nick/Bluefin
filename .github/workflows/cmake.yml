@@ -43,11 +43,11 @@ jobs:
     - name: Install lcov
       run: sudo apt-get install -y lcov
     - name: Generate coverage
-      run: lcov --capture --directory ${{github.workspace}}/build --output-file coverage/coverage.info
+      run: lcov --capture --directory ${{github.workspace}}/build --output-file coverage.info
     - name: Report code coverage
       uses: zgosalvez/github-actions-report-lcov@v1
       with:
-        coverage-files: /coverage/coverage.info
+        coverage-files: /coverage.info
         minimum-coverage: 20
         artifact-name: code-coverage-report
         github-token: ${{secrets.GITHUB_TOKEN}}
