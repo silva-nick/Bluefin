@@ -52,7 +52,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Report code coverage
-      needs: Generate coverage
       uses: zgosalvez/github-actions-report-lcov@v1
       with:
         coverage-files: build/*.info
