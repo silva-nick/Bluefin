@@ -27,7 +27,6 @@ endif()
 
 add_subdirectory(src)
 
-
 # gtest
 option(ENABLE_TEST_SUITE "Enable the test suite" ON)
 

@@ -85,7 +85,10 @@ NoOp::NoOp() : AST(Token(), ASTType::NoOp) {}
 // end NoOp
 
 VarDecl::VarDecl(AST &typeNode, AST &varNode, AST &rhsNode)
-    : typeNode(typeNode), id(varNode), expr(rhsNode), AST(Token(), ASTType::VarDecl) {}
+    : typeNode(typeNode),
+      id(varNode),
+      expr(rhsNode),
+      AST(Token(), ASTType::VarDecl) {}
 
 std::string VarDecl::toString() const {
     return AST::toString() + ", type_val: " + this->typeNode.toString() +
