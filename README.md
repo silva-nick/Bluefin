@@ -54,7 +54,6 @@ assignment_operator = =
 unary_operator = +|-
 ```
 
-
 #### Building with Docker
 
 **`Run docker container`**

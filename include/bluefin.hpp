@@ -18,6 +18,25 @@ const std::unordered_map<std::string, Token> RESERVED_KEYWORDS = [] {
     return map;
 }();
 
+typedef struct data_t {
+    unsigned char *data;
+    size_t size;
+} data_t;
+
+typedef struct data_type_t {
+    data_t value;
+    Symbol type;
+    unsigned char *getData() {
+        return this->value.data;
+    }
+    int getDataAsInt() {
+        return (int)(this->getData()*);
+    }
+    double getDataAsDouble() {
+        return (double)(this->getData()*);
+    }
+} data_type_t;
+
 class Lexer {
    public:
     Lexer(std::string expr);
@@ -68,38 +87,39 @@ class ASTTraverser {
 
    protected:
     AST *root_;
-    int visit(const AST &node);
+    data_type_t visit(const AST &node);
 
    private:
-    virtual int visitProgram(const Program &node) = 0;
-    virtual int visitCompound(const Compound &node) = 0;
-    virtual int visitBinOp(const BinOp &node) = 0;
-    virtual int visitUnaryOp(const UnaryOp &node) = 0;
-    virtual int visitAssign(const Assign &node) = 0;
-    virtual int visitVarDecl(const VarDecl &node) = 0;
-    virtual int visitType(const Type &node) = 0;
-    virtual int visitVar(const Var &node) = 0;
-    virtual int visitNum(const Num &node) = 0;
+    virtual void visitProgram(const Program &node) = 0;
+    virtual void visitCompound(const Compound &node) = 0;
+    virtual data_type_t visitBinOp(const BinOp &node) = 0;
+    virtual data_type_t visitUnaryOp(const UnaryOp &node) = 0;
+    virtual void visitAssign(const Assign &node) = 0;
+    virtual void visitVarDecl(const VarDecl &node) = 0;
+    virtual void visitType(const Type &node) = 0;
+    virtual data_t visitVar(const Var &node) = 0;
+    virtual data_t visitNum(const Num &node) = 0;
 };
 
 class Interpreter : public ASTTraverser {
    public:
-    Interpreter(AST *root);
+    Interpreter(AST *root, SymbolTable symbols);
     int interpret();
     std::string toString() const;
 
    private:
-    int visitProgram(const Program &node);
-    int visitCompound(const Compound &node);
-    int visitBinOp(const BinOp &node);
-    int visitUnaryOp(const UnaryOp &node);
-    int visitAssign(const Assign &node);
-    int visitVarDecl(const VarDecl &node);
-    int visitType(const Type &node);
-    int visitVar(const Var &node);
-    int visitNum(const Num &node);
+    void visitProgram(const Program &node);
+    void visitCompound(const Compound &node);
+    data_type_t visitBinOp(const BinOp &node);
+    data_type_t visitUnaryOp(const UnaryOp &node);
+    void visitAssign(const Assign &node);
+    void visitVarDecl(const VarDecl &node);
+    void visitType(const Type &node);
+    data_type_t visitVar(const Var &node);
+    data_type_t visitNum(const Num &node);
 
-    std::unordered_map<std::string, int> global_;
+    std::unordered_map<std::string, data_t> global_;
+    SymbolTable symbols_;
 };
 
 class Symbol {
@@ -139,17 +159,18 @@ class SymbolTableBuilder : public ASTTraverser {
     SymbolTableBuilder(AST *root);
     void build();
     std::string toString() const;
+    SymbolTable getSymbols() const;
 
    private:
-    int visitProgram(const Program &node);
-    int visitCompound(const Compound &node);
-    int visitBinOp(const BinOp &node);
-    int visitUnaryOp(const UnaryOp &node);
-    int visitAssign(const Assign &node);
-    int visitVarDecl(const VarDecl &node);
-    int visitType(const Type &node);
-    int visitVar(const Var &node);
-    int visitNum(const Num &node);
+    void visitProgram(const Program &node);
+    void visitCompound(const Compound &node);
+    void visitBinOp(const BinOp &node);
+    void visitUnaryOp(const UnaryOp &node);
+    void visitAssign(const Assign &node);
+    void visitVarDecl(const VarDecl &node);
+    void visitType(const Type &node);
+    void visitVar(const Var &node);
+    void visitNum(const Num &node);
 
     SymbolTable symbols_;
 };
