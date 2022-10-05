@@ -8,10 +8,25 @@ using namespace bluefin;
 void run_lexer(const std::string &input);
 void run_parser(const std::string &input);
 
-int main(int argc, char *argv[]) {
-    std::cout << "> hello" << std::endl;
-    std::cout << run("{double g_=0.1;/*comment*/}") << std::endl;
+void runFile(char *file) {
+    FILE *f = fopen(file, "r");
 
+    // Find end of file and allocate string
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    char *code = new char[size];
+
+    // Reset pointer to start of file and copy value to string
+    rewind(f);
+    fread(code, sizeof(char), size, f);
+
+    // Run Bluefin on the text
+    std::cout << run(std::string(code)) << std::endl;
+
+    delete[] code;
+}
+
+void runREPL() {
     while (true) {
         // Read
         std::cout << "> ";
@@ -28,6 +43,17 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << std::endl;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc > 2) {
+        std::cout << "Usage: blue [file]";
+        return 1;
+    } else if (argc == 2) {
+        runFile(argv[1]);
+    } else {
+        runREPL();
+    }
 
     return 0;
 }

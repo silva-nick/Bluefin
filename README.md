@@ -64,6 +64,8 @@ docker compose up -d --build
 docker exec -ti bf bash
 ```
 
+**Probably just use build.sh in ./utils**
+
 _Then to build._
 ```bash
 # Configure the build
