@@ -9,6 +9,8 @@
 namespace bluefin {
 
 int run(const std::string &expr);
+int error(unsigned line, std::string message);
+unsigned ERROR_STATUS = 0;
 
 // TODO: make this compile time?
 const std::unordered_map<std::string, Token> RESERVED_KEYWORDS = [] {

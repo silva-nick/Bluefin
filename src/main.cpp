@@ -36,10 +36,11 @@ void runREPL() {
         // Check for escape characters
         if (input == "q" || input == "quit") {
             break;
-        } else {
-            // Eval and print
-            std::cout << run(input) << std::endl;
         }
+
+        // Eval and print
+        std::cout << run(input) << std::endl;
+        ERROR_STATUS = 0;
     }
 
     std::cout << std::endl;
@@ -55,5 +56,5 @@ int main(int argc, char *argv[]) {
         runREPL();
     }
 
-    return 0;
+    return ERROR_STATUS;
 }

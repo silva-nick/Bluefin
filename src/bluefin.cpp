@@ -12,4 +12,10 @@ int run(const std::string &expr) {
     return interpreter.interpret();
 }
 
+void error() {
+    System.err.println(
+        "[line " + line + "] Error" + where + ": " + message);
+    ERROR_STATUS = 1;
+}
+
 } // namespace bluefin
