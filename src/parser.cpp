@@ -52,40 +52,40 @@ Token Lexer::nextToken() {
     } else {
         switch (firstChar) {
             case '=':
-                token = Token(TokenType::ASSIGN, "=");
+                token = Token(TokenType::EQ, "=", 0);
                 break;
             case ';':
-                token = Token(TokenType::SEMI, ";");
+                token = Token(TokenType::SEMI, ";", 0);
                 break;
             case '{':
-                token = Token(TokenType::BSTR, "{");
+                token = Token(TokenType::BSTR, "{", 0);
                 break;
             case '}':
-                token = Token(TokenType::BEND, "}");
+                token = Token(TokenType::BEND, "}", 0);
                 break;
             case '+':
-                token = Token(TokenType::PLUS, "+");
+                token = Token(TokenType::PLUS, "+", 0);
                 break;
             case '-':
-                token = Token(TokenType::MINUS, "-");
+                token = Token(TokenType::MINUS, "-", 0);
                 break;
             case '*':
-                token = Token(TokenType::MULT, "*");
+                token = Token(TokenType::MULT, "*", 0);
                 break;
             case '/':
                 if (this->peek() == '/')
-                    token = Token(TokenType::INT_DIV, "//");
+                    token = Token(TokenType::INT_DIV, "//", 0);
                 else
-                    token = Token(TokenType::DIV, "/");
+                    token = Token(TokenType::DIV, "/", 0);
                 break;
             case '%':
-                token = Token(TokenType::REM, "%");
+                token = Token(TokenType::REM, "%", 0);
                 break;
             case '(':
-                token = Token(TokenType::PSTR, "(");
+                token = Token(TokenType::PSTR, "(", 0);
                 break;
             case ')':
-                token = Token(TokenType::PEND, ")");
+                token = Token(TokenType::PEND, ")", 0);
                 break;
             default:
                 break;
@@ -130,9 +130,9 @@ Token Lexer::nextNumber() {
                isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
             this->tokenLen_++;
 
-        return Token(TokenType::DOUBLE_CONST, getCurrentTokenString());
+        return Token(TokenType::DOUBLE_LITERAL, getCurrentTokenString(), 0);
     } else {
-        return Token(TokenType::INTEGER_CONST, getCurrentTokenString());
+        return Token(TokenType::INTEGER_LITERAL, getCurrentTokenString(), 0);
     }
 }
 
@@ -152,7 +152,7 @@ Token Lexer::nextID() {
 
     return RESERVED_KEYWORDS.count(tokenString)
         ? RESERVED_KEYWORDS.at(tokenString)
-        : Token(TokenType::ID, getCurrentTokenString());
+        : Token(TokenType::ID, getCurrentTokenString(), 0);
 }
 // end Lexer
 
@@ -326,11 +326,11 @@ AST *Parser::primary_expr() {
     printf("primary_expr :%s\n", expr.toString().c_str());
 
     switch (expr.type) {
-        case TokenType::INTEGER_CONST:
-            this->consume(TokenType::INTEGER_CONST);
+        case TokenType::INTEGER_LITERAL:
+            this->consume(TokenType::INTEGER_LITERAL);
             return new Num(expr);
-        case TokenType::DOUBLE_CONST:
-            this->consume(TokenType::DOUBLE_CONST);
+        case TokenType::DOUBLE_LITERAL:
+            this->consume(TokenType::DOUBLE_LITERAL);
             return new Num(expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
@@ -355,15 +355,15 @@ AST *Parser::assignment_expr() {
 
     // This currently is a hacky fix
     // need to find a way for it to parse int x = a+2;
-    if (lhs.type == TokenType::INTEGER_CONST ||
-        lhs.type == TokenType::DOUBLE_CONST) {
+    if (lhs.type == TokenType::INTEGER_LITERAL ||
+        lhs.type == TokenType::DOUBLE_LITERAL) {
         return additive_expr();
     }
 
     AST *left = this->unary_expr();
 
     Token assignmentOp = this->currToken_;
-    this->consume(TokenType::ASSIGN);
+    this->consume(TokenType::EQ);
 
     AST *right = this->additive_expr();
     return new Assign(*left, assignmentOp, *right);
@@ -376,9 +376,9 @@ AST *Parser::declaration() {
     AST *id = new Var(this->currToken_);
     this->consume(TokenType::ID);
 
-    if (this->currToken_.type == TokenType::ASSIGN) {
+    if (this->currToken_.type == TokenType::EQ) {
         // This should be removed for null declaration
-        this->consume(TokenType::ASSIGN);
+        this->consume(TokenType::EQ);
 
         AST *rhs = this->assignment_expr();
         return new VarDecl(*type, *id, *rhs);

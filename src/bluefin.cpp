@@ -12,9 +12,8 @@ int run(const std::string &expr) {
     return interpreter.interpret();
 }
 
-void error() {
-    System.err.println(
-        "[line " + line + "] Error" + where + ": " + message);
+void error(int line, std::string message) {
+    std::cerr << "[line " << line << "] Error: " << message << std::endl;
     ERROR_STATUS = 1;
 }
 

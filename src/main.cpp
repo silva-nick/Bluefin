@@ -1,12 +1,10 @@
 #include "bluefin.hpp"
 
-#include <iostream>
-#include <string>
-
 using namespace bluefin;
 
 void run_lexer(const std::string &input);
 void run_parser(const std::string &input);
+unsigned ERROR_STATUS = 0;
 
 void runFile(char *file) {
     FILE *f = fopen(file, "r");

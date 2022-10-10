@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -10,13 +11,13 @@ namespace bluefin {
 
 int run(const std::string &expr);
 int error(unsigned line, std::string message);
-unsigned ERROR_STATUS = 0;
+extern unsigned ERROR_STATUS;
 
 // TODO: make this compile time?
 const std::unordered_map<std::string, Token> RESERVED_KEYWORDS = [] {
     std::unordered_map<std::string, Token> map = {
-        {"int", Token(TokenType::INTEGER, "int")},
-        {"double", Token(TokenType::DOUBLE, "double")}};
+        {"int", Token(TokenType::INTEGER, "int", 0)},
+        {"double", Token(TokenType::DOUBLE, "double", 0)}};
     return map;
 }();
 
