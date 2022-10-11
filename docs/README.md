@@ -4,7 +4,7 @@
 
 :fish: :fish: :fish:
 
-### New ideas:
+## New ideas
 
 -   Everything is mockable
     -   myClass.when().function().then(true)
@@ -24,7 +24,7 @@
     -   Assert built in (promises)
     -   Num.assert(1-10)
 
-### Introduction:
+# Introduction
 
 Each year record numbers of students are graduating from colleges with computer science degrees. As such, swarms of new developers are searching for new technologies to learn and adapt. This overwhelming pressure has moved the field of computer science to a critical juncture between legacy technology its contemporary rivals.
 
@@ -32,7 +32,7 @@ This trend in people hoping to learn programming is also widely paralleled by th
 
 The importance of these demands is captured quite adequately by the emergence of Python as the dominant programming language in computational fields as well as in higher institutions (Woodie 2021). Since the development of the popular languages of the ‘90s (C, C++, Fortran, etc.), available memory and computing power have increased by orders of magnitude. This trend has allowed very high-level languages, like Python, to take advantage of resources and provide a more accessible developer experience.
 
-### Bluefin:
+## Bluefin
 
 The purpose of this report is to outline the specification and design strategy of Bluefin, a statically- typed and introspective scripting language. Bluefin looks to take advantage of the flexibility provided by scripting languages while also building in more stringent design patterns into the language. This way, Bluefin pulls from procedural, object-oriented, and reflective programming paradigms to give developers flexibility and stability on large projects. Bluefin’s target audience ranges from rookie programmers learning their first or second language to seasoned developers frustrated with the lack of malleability in their chosen language.
 
@@ -42,11 +42,11 @@ Dynamic typing, however, leads to one interesting design principle: introspectio
 
 The final powerful feature available in Bluefin is scripting. As the modern coding workflow moves towards segmentable notebooks and other script-based forms, developers have begun to demand a more iterative programming experience. Through Bluefin blocks, users can run code and get useful diagnostics before shipping to larger-scale ideas.
 
-### Design Goals:
+## Design Goals
 
 The section above provides some justification for why Bluefin has its fundamental features. In continuation of this, Bluefin is developed with a simple set of development goals that outline the intentions of the project into the future. These main ideas are summarized below.
 
-#### Design goals of Bluefin
+_Design goals of Bluefin_
 
 1. Enable and mandate type-safe programming practices.
 2. Make writing code fast and simple to understand.
@@ -60,41 +60,49 @@ The section above provides some justification for why Bluefin has its fundamenta
 10. Provide powerful abstraction through introspection.
 11. Ensure Bluefin is open source and accessible.
 
+> 📝 Note: These may change over time.
+
 Each of these goals was crafted to support the fundamental goal of Bluefin, to provide a performant, educational, and syntactically powerful language. The importance of performance to the language is represented in points (8,9,11). In not sacrificing on performance, Bluefin scales to large projects and complex computational tasks. However, usability is incredibly important to Bluefin’s position as an educational computer language. Ease of access and programming, summarized in points (1,2,3,4,5,6,7,8), is guaranteed through maintaining recognizable syntax while simplifying cumbersome aspects of traditional languages. Moreover, by a computer languages Occam’s Razor doing things the best way is always easier than doing them the wrong way. Abstractly, Bluefin can be used in unique ways to other similar languages through iterative code blocks and introspection (10). This transition in development workflow gives users more power over how they want to develop. Finally, Bluefin is organized to give the developer extreme power and control over their code. Through layered abstraction and runtime introspection, Bluefin looks to empower developers in their environments.
 
-# Details:
+# Details
 
-## Build-in types:
+## Build-in types
 
-## Declarations:
+## Declarations
 
-## Inheritance:
+## Inheritance
 
-## Scopes:
+## Scopes
 
-## Expressions:
+## Expressions
 
-## Statements:
+## Statements
 
-## Variables:
+## Variables
 
-## Control Flow:
+## Control Flow
 
-## Functions:
+## Functions
 
-## Classes:
+## Classes
 
-### Methods:
+# The Bluefin Interpreter
+
+## Methods
 
 Bluefin is an interpreted language and therefore needs an interpreter to run code and produce output. The Bluefin codebase uses C++17. The Bluefin interpreter will be made out of three fundamental units: the lexer, parser, and interpreter. The lexer, or tokenizer, is the object that reads in the given code as text and transforms it into tokens. It uses the language grammar to tokenize atomic character sequences from the input code. This functionality is utilized by the second component, the parser. The parser takes the stream of tokens and forms them into an abstract syntax tree. In this tree, programs, statements and expressions are implemented as DFS traversals of the tree’s nodes. Traversing this tree and creating the desired output is the goal of the interpreter. The interpreter takes as input the root node of the AST and traverses it. During this traversal, the interpreter runs the program. Each step of this interpreter design requires careful implementation and many unit tests.
 
-### Diagram:
+## Diagram
+
+![Diagram of the Bluefin interpreter](/_media/diagram.png)
 
 To implement the more advanced features of Bluefin, more research and experimentation are required.
 
-# Bluefin EBNF Grammar (as of 2/2/22):
+# Bluefin EBNF Grammar (as of 2/2/22)
 
-The language’s grammar, referenced many times above, is defined below in Extended Bakus-Naur Form (EBNF). EBNF is a notation used to define context-free grammars. The Bluefin grammar is roughly based off Ruslan Spivak’s Pascal interpreter and the C official language syntax. The grammar below is used to help guide the development process and can be used to completely implement a Bluefin parser.
+> The language’s grammar, referenced many times above, is defined below in Extended Bakus-Naur Form (EBNF). EBNF is a notation used to define context-free grammars. The Bluefin grammar is roughly based off Ruslan Spivak’s Pascal interpreter and the C official language syntax. The grammar below is used to help guide the development process and can be used to completely implement a Bluefin parser.
+
+```Bluefin
 program = compound*statement
 | program compound_statement
 compound* statement = "{" statement_list "}"
@@ -123,8 +131,9 @@ identifier = alphabetic character (alphanumeric character)*
 constant = integer
 assignment_operator = =
 unary_operator = +|-
+```
 
-# Resources:
+# Resources
 
 Alexander, A. (2009). Java design goals. Introduction to Java and OOA/OOD for Web Applications. https://alvinalexander.com/java/misc/4days_dd/node47.shtml
 
