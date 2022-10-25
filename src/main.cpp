@@ -1,11 +1,5 @@
 #include "bluefin.hpp"
 
-using namespace bluefin;
-
-void run_lexer(const std::string &input);
-void run_parser(const std::string &input);
-unsigned ERROR_STATUS = 0;
-
 void runFile(char *file) {
     FILE *f = fopen(file, "r");
 
@@ -19,7 +13,7 @@ void runFile(char *file) {
     fread(code, sizeof(char), size, f);
 
     // Run Bluefin on the text
-    std::cout << run(std::string(code)) << std::endl;
+    std::cout << bluefin::run(std::string(code)) << std::endl;
 
     delete[] code;
 }
@@ -37,8 +31,8 @@ void runREPL() {
         }
 
         // Eval and print
-        std::cout << run(input) << std::endl;
-        ERROR_STATUS = 0;
+        std::cout << bluefin::run(input) << std::endl;
+        bluefin::ERROR_STATUS = 0;
     }
 
     std::cout << std::endl;
@@ -54,5 +48,5 @@ int main(int argc, char *argv[]) {
         runREPL();
     }
 
-    return ERROR_STATUS;
+    return bluefin::ERROR_STATUS;
 }

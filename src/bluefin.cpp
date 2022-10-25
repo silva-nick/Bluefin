@@ -3,6 +3,8 @@
 namespace bluefin {
 namespace {} // namespace
 
+unsigned ERROR_STATUS = 0;
+
 int run(const std::string &expr) {
     Lexer lexer(expr);
     Parser parser(lexer);

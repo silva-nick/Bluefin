@@ -12,9 +12,14 @@ target_include_directories(interpreter PUBLIC ../include)
 target_link_libraries(interpreter PUBLIC parser)
 target_compile_features(interpreter PUBLIC cxx_std_17)
 
+add_library(symboltable STATIC symboltable.cpp)
+target_include_directories(symboltable PUBLIC ../include)
+target_link_libraries(symboltable PUBLIC interpreter)
+target_compile_features(symboltable PUBLIC cxx_std_17)
+
 add_library(bluefin STATIC bluefin.cpp)
 target_include_directories(bluefin PUBLIC ../include)
-target_link_libraries(bluefin PUBLIC interpreter)
+target_link_libraries(bluefin PUBLIC symboltable)
 target_compile_features(bluefin PUBLIC cxx_std_17)
 
 add_executable(blue main.cpp)
