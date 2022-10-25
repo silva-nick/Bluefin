@@ -3,7 +3,7 @@
 namespace bluefin {
 namespace {} // namespace
 
-unsigned ERROR_STATUS = 0;
+size_t ERROR_STATUS = 0;
 
 int run(const std::string &expr) {
     Lexer lexer(expr);
@@ -14,7 +14,7 @@ int run(const std::string &expr) {
     return interpreter.interpret();
 }
 
-void error(int line, std::string message) {
+void error(size_t line, std::string message) {
     std::cerr << "[line " << line << "] Error: " << message << std::endl;
     ERROR_STATUS = 1;
 }

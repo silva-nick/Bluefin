@@ -6,6 +6,7 @@ namespace {} // namespace
 Lexer::Lexer(std::string expr) : expr_(std::move(expr)) {
     this->tokenStart_ = 0;
     this->tokenLen_ = 1;
+    this->line_ = 1;
 }
 
 // Checks if lexer has reached the end of expr
@@ -35,7 +36,7 @@ Token Lexer::nextToken() {
     this->skipWhitespace();
 
     if (!hasMoreChars()) {
-        return Token();
+        return makeToken(TokenType::END);
     }
 
     char firstChar = this->expr_[this->tokenStart_];
@@ -50,46 +51,24 @@ Token Lexer::nextToken() {
         this->skipComment();
         return this->nextToken();
     } else {
+        // clang-format off
         switch (firstChar) {
-            case '=':
-                token = Token(TokenType::EQ, "=", 0);
-                break;
-            case ';':
-                token = Token(TokenType::SEMI, ";", 0);
-                break;
-            case '{':
-                token = Token(TokenType::BSTR, "{", 0);
-                break;
-            case '}':
-                token = Token(TokenType::BEND, "}", 0);
-                break;
-            case '+':
-                token = Token(TokenType::PLUS, "+", 0);
-                break;
-            case '-':
-                token = Token(TokenType::MINUS, "-", 0);
-                break;
-            case '*':
-                token = Token(TokenType::MULT, "*", 0);
-                break;
-            case '/':
-                if (this->peek() == '/')
-                    token = Token(TokenType::INT_DIV, "//", 0);
-                else
-                    token = Token(TokenType::DIV, "/", 0);
-                break;
-            case '%':
-                token = Token(TokenType::REM, "%", 0);
-                break;
-            case '(':
-                token = Token(TokenType::PSTR, "(", 0);
-                break;
-            case ')':
-                token = Token(TokenType::PEND, ")", 0);
-                break;
-            default:
-                break;
+            case '{': token = makeToken(TokenType::BSTR); break;
+            case '}': token = makeToken(TokenType::BEND); break;
+            case '(': token = makeToken(TokenType::PSTR); break;
+            case ')': token = makeToken(TokenType::PEND); break;
+            case ';': token = makeToken(TokenType::SEMI); break;
+            case ',': token = makeToken(TokenType::COMMA); break;
+            case '.': token = makeToken(TokenType::DOT); break;
+            case '=': token = makeToken(TokenType::EQ); break;
+            case '+': token = makeToken(TokenType::PLUS); break;
+            case '-': token = makeToken(TokenType::MINUS); break;
+            case '*': token = makeToken(TokenType::MULT); break;
+            case '/': token = handleForwardSlash(); break;
+            case '%': token = makeToken(TokenType::REM); break;
+            default: error(line_, "Unexpected Token"); break;
         }
+        // clang-format on
     }
 
     printf(
@@ -107,6 +86,15 @@ Token Lexer::nextToken() {
 void Lexer::skipWhitespace() {
     while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
         this->tokenStart_++;
+}
+
+Token Lexer::handleForwardSlash() {
+    if (this->peek() == '/') {
+        this->tokenLen_ = 2;
+        return makeToken(TokenType::INT_DIV);
+    } else {
+        return makeToken(TokenType::DIV);
+    }
 }
 
 void Lexer::skipComment() {
@@ -130,9 +118,9 @@ Token Lexer::nextNumber() {
                isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
             this->tokenLen_++;
 
-        return Token(TokenType::DOUBLE_LITERAL, getCurrentTokenString(), 0);
+        return makeToken(TokenType::DOUBLE_LITERAL, getCurrentTokenString());
     } else {
-        return Token(TokenType::INTEGER_LITERAL, getCurrentTokenString(), 0);
+        return makeToken(TokenType::INTEGER_LITERAL, getCurrentTokenString());
     }
 }
 
@@ -152,7 +140,15 @@ Token Lexer::nextID() {
 
     return RESERVED_KEYWORDS.count(tokenString)
         ? RESERVED_KEYWORDS.at(tokenString)
-        : Token(TokenType::ID, getCurrentTokenString(), 0);
+        : makeToken(TokenType::ID, getCurrentTokenString());
+}
+
+Token Lexer::makeToken(TokenType type) {
+    return makeToken(type, "");
+}
+
+Token Lexer::makeToken(TokenType type, std::string value) {
+    return Token(type, value, line_);
 }
 // end Lexer
 

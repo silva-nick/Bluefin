@@ -17,10 +17,13 @@ class Lexer {
     char peek();
     std::string getCurrentTokenString();
     void skipWhitespace();
+    Token handleForwardSlash();
     void skipComment();
     Token nextNumber();
     bool isNextCharID();
     Token nextID();
+    Token makeToken(TokenType type);
+    Token makeToken(TokenType, std::string value);
     size_t tokenStart_;
     size_t tokenLen_;
     size_t line_;

@@ -8,7 +8,7 @@ Token::Token() {
     this->line = 0;
 }
 
-Token::Token(TokenType type, std::string value, unsigned line) {
+Token::Token(TokenType type, std::string value, size_t line) {
     this->type = type;
     this->value = value;
     this->line = line;

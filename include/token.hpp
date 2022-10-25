@@ -57,11 +57,10 @@ static constexpr const char *const TokenTypeStrings[43] = {
 class Token {
    public:
     Token();
-    Token(TokenType type, std::string value, unsigned line);
+    Token(TokenType type, std::string value, size_t line);
     TokenType type;
-    std::string value;
-    unsigned line;
-    // literal object;
+    std::string value; // literal object
+    size_t line;
     std::string toString() const;
 
    private:
