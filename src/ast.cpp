@@ -2,27 +2,6 @@
 
 namespace bluefin {
 
-Token::Token(TokenType type, std::string value, unsigned line) {
-    this->type = type;
-    this->value = value;
-    this->line = line;
-}
-
-Token::Token() {
-    this->type = TokenType::END;
-    this->value = "";
-    this->line = 0;
-}
-
-std::string Token::toString() const {
-    return "Token(" + this->getTokenTypeString() + "," + this->value + ")";
-}
-
-std::string Token::getTokenTypeString() const {
-    return TokenTypeStrings[(int)this->type];
-}
-// end Token
-
 AST::AST() {}
 
 AST::AST(Token value, ASTType nodeType)

@@ -1,5 +1,10 @@
+add_library(token STATIC token.cpp)
+target_include_directories(token PUBLIC ../include)
+target_compile_features(token PUBLIC cxx_std_17)
+
 add_library(ast STATIC ast.cpp)
 target_include_directories(ast PUBLIC ../include)
+target_link_libraries(ast PUBLIC token)
 target_compile_features(ast PUBLIC cxx_std_17)
 
 add_library(parser STATIC parser.cpp)

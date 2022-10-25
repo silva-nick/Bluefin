@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include "token.hpp"    
 #include "ast.hpp"
 #include "asttraverser.hpp"
 #include "symboltable.hpp"

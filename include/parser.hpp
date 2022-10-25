@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast.hpp"
+#include "token.hpp"
 
 namespace bluefin {
 
@@ -22,6 +23,7 @@ class Lexer {
     Token nextID();
     size_t tokenStart_;
     size_t tokenLen_;
+    size_t line_;
 };
 
 class Parser {
