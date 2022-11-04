@@ -23,6 +23,7 @@ class ASTTraverser {
     virtual int visitType(const Type &node) = 0;
     virtual int visitVar(const Var &node) = 0;
     virtual int visitNum(const Num &node) = 0;
+    virtual int visitString(const String &node) = 0;
 };
 
 } // namespace bluefin

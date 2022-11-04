@@ -98,4 +98,11 @@ std::string Num::toString() const {
 }
 // end Num
 
+String::String(Token token) : AST(token, ASTType::String) {}
+
+std::string String::toString() const {
+    return AST::toString();
+}
+// end String
+
 } // namespace bluefin

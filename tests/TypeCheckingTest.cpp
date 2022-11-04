@@ -1,6 +1,4 @@
-#include "../include/bluefin.hpp"
-
-#include "gtest/gtest.h"
+#include "Test.hpp"
 
 namespace {
 
@@ -13,7 +11,10 @@ TEST(TypeChecking, NoDeclTest) {
 }
 
 TEST(TypeChecking, NanTypeTest) {
-    EXPECT_THROW(run("{type a=10;}"), std::invalid_argument);
+    EXPECT_THAT(
+        captureErrors("{type a=10;}"),
+        testing::HasSubstr(
+            "[line 1] Error: Parser consume failed on tokenToken(ID,a)"));
 }
 
 } // namespace

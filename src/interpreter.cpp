@@ -32,6 +32,8 @@ int ASTTraverser::visit(const AST &node) {
             return visitVar(static_cast<const Var &>(node));
         case ASTType::Num:
             return visitNum(static_cast<const Num &>(node));
+        case ASTType::String:
+            return visitString(static_cast<const String &>(node));
         default:
             throw new std::logic_error(
                 "Interpreter found invalid AST node" + node.toString());
@@ -39,7 +41,8 @@ int ASTTraverser::visit(const AST &node) {
 }
 // end ASTTraverser
 
-Interpreter::Interpreter(AST *root) : ASTTraverser(root) {}
+Interpreter::Interpreter(AST *root, std::stringstream &buffer)
+    : ASTTraverser(root), buffer_(buffer) {}
 
 std::string Interpreter::toString() const {
     std::string out = "Global vars: \n";
@@ -148,6 +151,11 @@ int Interpreter::visitNum(const Num &node) {
     printf("%s\n", node.toString().c_str());
 
     return std::stoi(node.token.value);
+}
+
+int Interpreter::visitString(const String &node) {
+    printf("%s\n", node.toString().c_str());
+    return -27;
 }
 
 int Interpreter::interpret() {

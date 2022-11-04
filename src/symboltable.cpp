@@ -25,6 +25,7 @@ SymbolTable::SymbolTable() {
 void SymbolTable::initBuiltins() {
     this->define(BuiltinTypeSymbol("int"));
     this->define(BuiltinTypeSymbol("double"));
+    this->define(BuiltinTypeSymbol("string"));
 }
 
 std::string SymbolTable::toString() const {
@@ -47,7 +48,8 @@ Symbol SymbolTable::lookup(const std::string &name) {
 }
 // end SymbolTable
 
-SymbolTableBuilder::SymbolTableBuilder(AST *root) : ASTTraverser(root) {
+SymbolTableBuilder::SymbolTableBuilder(AST *root, std::stringstream &buffer)
+    : ASTTraverser(root), buffer_(buffer) {
     printf("\nBUILDING SYMBOLS\n");
     this->build();
     printf("\n%s \n", this->toString().c_str());
@@ -112,6 +114,10 @@ int SymbolTableBuilder::visitVar(const Var &node) {
 }
 
 int SymbolTableBuilder::visitNum(const Num &node) {
+    return 0;
+}
+
+int SymbolTableBuilder::visitString(const String &node) {
     return 0;
 }
 // end SymbolTableBuilder

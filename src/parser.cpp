@@ -3,10 +3,11 @@
 namespace bluefin {
 namespace {} // namespace
 
-Lexer::Lexer(std::string expr) : expr_(std::move(expr)) {
+Lexer::Lexer(std::string expr, std::stringstream &buffer)
+    : expr_(std::move(expr)), buffer_(buffer) {
     this->tokenStart_ = 0;
     this->tokenLen_ = 1;
-    this->line_ = 1;
+    this->line = 1;
 }
 
 // Checks if lexer has reached the end of expr
@@ -25,6 +26,25 @@ char Lexer::peek() {
         return this->expr_[this->tokenStart_ + this->tokenLen_];
     } else {
         return '\0';
+    }
+}
+
+// Returns the next next char in the expression
+char Lexer::peekNext() {
+    if (this->tokenStart_ + this->tokenLen_ + 1 < this->expr_.length()) {
+        return this->expr_[this->tokenStart_ + this->tokenLen_ + 1];
+    } else {
+        return '\0';
+    }
+}
+
+// Peeks and increments length if character is a match
+bool Lexer::nextMatches(char c) {
+    if (this->peek() == c) {
+        this->tokenLen_++;
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -47,6 +67,7 @@ Token Lexer::nextToken() {
     } else if (isalpha(firstChar)) {
         token = nextID();
     } else if (firstChar == '/' && this->peek() == '*') {
+        // Block comment
         this->tokenStart_ += 2;
         this->skipComment();
         return this->nextToken();
@@ -60,13 +81,31 @@ Token Lexer::nextToken() {
             case ';': token = makeToken(TokenType::SEMI); break;
             case ',': token = makeToken(TokenType::COMMA); break;
             case '.': token = makeToken(TokenType::DOT); break;
-            case '=': token = makeToken(TokenType::EQ); break;
+            case '~': token = makeToken(TokenType::MUTABLE); break;
+            case '?': token = makeToken(TokenType::NULLABLE); break;
+            case '!': 
+                token = nextMatches('=') ? makeToken(TokenType::NOT_EQ) : makeToken(TokenType::NOT); 
+                break;
+            case '=':
+                token = nextMatches('=') ? makeToken(TokenType::EQ_EQ) : makeToken(TokenType::EQ); 
+                break;
+            case '>':
+                token = nextMatches('=') ? makeToken(TokenType::GREATER_EQ) : makeToken(TokenType::GREATER); 
+                break;
+            case '<':
+                token = nextMatches('=') ? makeToken(TokenType::LESS_EQ) : makeToken(TokenType::LESS); 
+                break;
             case '+': token = makeToken(TokenType::PLUS); break;
             case '-': token = makeToken(TokenType::MINUS); break;
             case '*': token = makeToken(TokenType::MULT); break;
             case '/': token = handleForwardSlash(); break;
             case '%': token = makeToken(TokenType::REM); break;
-            default: error(line_, "Unexpected Token"); break;
+            case '"': token = nextString(); break;
+            case '\n': line++; break;
+            default: 
+                error(line, "Unexpected Token.", buffer_); 
+                this->tokenStart_ += 1;
+                return nextToken();
         }
         // clang-format on
     }
@@ -106,16 +145,13 @@ void Lexer::skipComment() {
 }
 
 Token Lexer::nextNumber() {
-    while (tokenHasMoreChars() &&
-           isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
+    while (tokenHasMoreChars() && isdigit(peek()))
         this->tokenLen_++;
 
-    if (tokenHasMoreChars() &&
-        this->expr_[this->tokenStart_ + this->tokenLen_] == '.') {
+    if (tokenHasMoreChars() && peek() == '.' && isdigit(peekNext())) {
         this->tokenLen_++;
 
-        while (tokenHasMoreChars() &&
-               isdigit(this->expr_[this->tokenStart_ + this->tokenLen_]))
+        while (tokenHasMoreChars() && isdigit(peek()))
             this->tokenLen_++;
 
         return makeToken(TokenType::DOUBLE_LITERAL, getCurrentTokenString());
@@ -128,8 +164,7 @@ Token Lexer::nextNumber() {
 bool Lexer::isNextCharID() {
     char nextChar;
     return tokenHasMoreChars() &&
-        ((nextChar = this->expr_[this->tokenStart_ + this->tokenLen_]) == '_' ||
-         isalpha(nextChar));
+        ((nextChar = peek()) == '_' || isalnum(nextChar));
 }
 
 Token Lexer::nextID() {
@@ -139,8 +174,26 @@ Token Lexer::nextID() {
     std::string tokenString = getCurrentTokenString();
 
     return RESERVED_KEYWORDS.count(tokenString)
-        ? RESERVED_KEYWORDS.at(tokenString)
-        : makeToken(TokenType::ID, getCurrentTokenString());
+        ? makeToken(RESERVED_KEYWORDS.at(tokenString), tokenString)
+        : makeToken(TokenType::ID, tokenString);
+}
+
+Token Lexer::nextString() {
+    while (peek() != '"' && tokenHasMoreChars()) {
+        if (peek() == '\n')
+            this->line++;
+        this->tokenLen_++;
+    }
+
+    if (!tokenHasMoreChars()) {
+        error(this->line, "String does not terminate.", buffer_);
+    }
+
+    std::string tokenString =
+        this->expr_.substr(this->tokenStart_ + 1, this->tokenLen_ - 1);
+    this->tokenLen_++;
+
+    return makeToken(TokenType::STRING_LITERAL, tokenString);
 }
 
 Token Lexer::makeToken(TokenType type) {
@@ -148,21 +201,22 @@ Token Lexer::makeToken(TokenType type) {
 }
 
 Token Lexer::makeToken(TokenType type, std::string value) {
-    return Token(type, value, line_);
+    return Token(type, value, line);
 }
 // end Lexer
 
-Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
+Parser::Parser(Lexer lexer, std::stringstream &buffer)
+    : lexer_(std::move(lexer)), buffer_(buffer) {
     this->currToken_ = this->lexer_.nextToken();
 
     printf("\nPARSING...\n");
 }
 
 void Parser::consume(TokenType type) {
-    // if (type != this->currToken_.type) printf("Consume: %s\n",
-    //     TokenTypeStrings[static_cast<int>(type)]);
+    printf("Consume: %s\n", TokenTypeStrings[static_cast<int>(type)]);
+
     if (type != this->currToken_.type) {
-        throw std::invalid_argument(
+        throw_error(
             "Parser consume failed on token" + this->currToken_.toString());
     }
     this->currToken_ = this->lexer_.nextToken();
@@ -173,7 +227,7 @@ AST *Parser::parse() {
     AST *node = this->program();
 
     if (this->currToken_.type != TokenType::END) {
-        throw std::invalid_argument(
+        throw_error(
             "Parser expected END instead found " + this->currToken_.toString());
     }
 
@@ -216,7 +270,7 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
     std::vector<std::reference_wrapper<AST>> result = {*node};
 
     if (this->currToken_.type != TokenType::SEMI) {
-        throw new std::invalid_argument(
+        throw_error(
             "statement_list() statement in unexpected token" +
             this->currToken_.toString());
     }
@@ -227,7 +281,7 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
     } while (this->currToken_.type == TokenType::SEMI);
 
     if (this->currToken_.type != TokenType::BEND) {
-        throw new std::invalid_argument(
+        throw_error(
             "statement_list() ended in unexpected token" +
             this->currToken_.toString());
     }
@@ -242,9 +296,9 @@ AST *Parser::statement() {
     switch (this->currToken_.type) {
         case TokenType::BSTR:
             return this->compound_statement();
-        case TokenType::INTEGER: // This seems like bad code
-            return this->declaration();
+        case TokenType::INTEGER:
         case TokenType::DOUBLE:
+        case TokenType::STRING:
             return this->declaration();
         case TokenType::ID:
             return this->assignment_expr();
@@ -328,6 +382,9 @@ AST *Parser::primary_expr() {
         case TokenType::DOUBLE_LITERAL:
             this->consume(TokenType::DOUBLE_LITERAL);
             return new Num(expr);
+        case TokenType::STRING_LITERAL:
+            this->consume(TokenType::STRING_LITERAL);
+            return new String(expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
             AST *node = additive_expr();
@@ -338,7 +395,7 @@ AST *Parser::primary_expr() {
             this->consume(TokenType::ID);
             return new Var(expr);
         default:
-            throw new std::invalid_argument(
+            throw_error(
                 "Token type not primary expression: " + expr.toString());
     }
 }
@@ -347,10 +404,10 @@ AST *Parser::primary_expr() {
 //                       | unary_expression assignment_operator
 //                       assignment_expression
 AST *Parser::assignment_expr() {
-    Token lhs = this->currToken_;
-
     // This currently is a hacky fix
     // need to find a way for it to parse int x = a+2;
+    // i.e. an additive expression;
+    Token lhs = this->currToken_;
     if (lhs.type == TokenType::INTEGER_LITERAL ||
         lhs.type == TokenType::DOUBLE_LITERAL) {
         return additive_expr();
@@ -359,6 +416,10 @@ AST *Parser::assignment_expr() {
     AST *left = this->unary_expr();
 
     Token assignmentOp = this->currToken_;
+    if (currToken_.type == TokenType::SEMI) {
+        return left;
+    }
+
     this->consume(TokenType::EQ);
 
     AST *right = this->additive_expr();
@@ -373,7 +434,6 @@ AST *Parser::declaration() {
     this->consume(TokenType::ID);
 
     if (this->currToken_.type == TokenType::EQ) {
-        // This should be removed for null declaration
         this->consume(TokenType::EQ);
 
         AST *rhs = this->assignment_expr();
@@ -396,12 +456,18 @@ AST *Parser::type_spec() {
         case TokenType::DOUBLE:
             this->consume(TokenType::DOUBLE);
             break;
+        case TokenType::STRING:
+            this->consume(TokenType::STRING);
+            break;
         default:
-            throw new std::invalid_argument(
-                "Parser found invalid type: " + type.toString());
+            throw_error("Parser found invalid type: " + type.toString());
     }
 
     return new Type(type);
+}
+
+void Parser::throw_error(const std::string &message) {
+    error(lexer_.line, message, buffer_);
 }
 // end parser
 

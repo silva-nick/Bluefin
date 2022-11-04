@@ -44,7 +44,7 @@ class SymbolTable {
 
 class SymbolTableBuilder : public ASTTraverser {
    public:
-    SymbolTableBuilder(AST *root);
+    SymbolTableBuilder(AST *root, std::stringstream &buffer);
     void build();
     std::string toString() const;
 
@@ -58,8 +58,10 @@ class SymbolTableBuilder : public ASTTraverser {
     int visitType(const Type &node);
     int visitVar(const Var &node);
     int visitNum(const Num &node);
+    int visitString(const String &node);
 
     SymbolTable symbols_;
+    std::stringstream &buffer_;
 };
 
 } // namespace bluefin

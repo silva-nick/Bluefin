@@ -1,27 +1,41 @@
-#include "../include/bluefin.hpp"
-
-#include "gtest/gtest.h"
+#include "Test.hpp"
 
 namespace {
 
 using namespace bluefin;
 
 TEST(Syntax, NoBrackets) {
-    EXPECT_THROW(run("a=10;"), std::invalid_argument);
+    EXPECT_THAT(
+        captureErrors("a=10;"),
+        testing::HasSubstr(
+            "[line 1] Error: Parser expected END instead found Token(ID,a)"));
 
-    EXPECT_THROW(run("int a=10;}"), std::invalid_argument);
+    EXPECT_THAT(
+        captureErrors("int a=10;}"),
+        testing::HasSubstr(
+            "[line 1] Error: Parser expected END instead found Token(INTEGER,int)"));
 
-    EXPECT_THROW(run("{int a=10;"), std::invalid_argument *);
+    EXPECT_THAT(
+        captureErrors("{a=10;"),
+        testing::HasSubstr(
+            "[line 1] Error: statement_list() ended in unexpected tokenToken(END,)"));
 }
 
 TEST(Syntax, BadDecl) {
-    EXPECT_THROW(run("{int a*b = 10;}"), std::invalid_argument *);
+    EXPECT_THAT(
+        captureErrors("{int a*b = 10;}"),
+        testing::HasSubstr(
+            "[line 1] Error: statement_list() statement in unexpected tokenToken(MULT,)"));
 
-    EXPECT_THROW(run("{int a12=10;}"), std::invalid_argument *);
+    EXPECT_THAT(
+        captureErrors("{int b=1;\nint a == 10;}"),
+        testing::HasSubstr(
+            "[line 2] Error: statement_list() ended in unexpected tokenToken(END,)"));
 
-    EXPECT_THROW(run("{int a==10;}"), std::invalid_argument *);
-
-    EXPECT_THROW(run("{int a =   10}"), std::invalid_argument *);
+    EXPECT_THAT(
+        captureErrors("{int a =   10}"),
+        testing::HasSubstr(
+            "[line 1] Error: statement_list() statement in unexpected tokenToken(BEND,)"));
 }
 
 } // namespace

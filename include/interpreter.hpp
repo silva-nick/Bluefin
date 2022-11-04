@@ -5,16 +5,16 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include "token.hpp"    
 #include "ast.hpp"
 #include "asttraverser.hpp"
 #include "symboltable.hpp"
+#include "token.hpp"
 
 namespace bluefin {
 
 class Interpreter : public ASTTraverser {
    public:
-    Interpreter(AST *root);
+    Interpreter(AST *root, std::stringstream &buffer);
     int interpret();
     std::string toString() const;
 
@@ -28,8 +28,10 @@ class Interpreter : public ASTTraverser {
     int visitType(const Type &node);
     int visitVar(const Var &node);
     int visitNum(const Num &node);
+    int visitString(const String &node);
 
     std::unordered_map<std::string, int> global_;
+    std::stringstream &buffer_;
 };
 
 } // namespace bluefin

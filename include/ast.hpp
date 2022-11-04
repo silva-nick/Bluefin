@@ -17,9 +17,10 @@ enum class ASTType : int {
     VarDecl,
     Type,
     Var,
-    Num
+    Num,
+    String
 };
-static constexpr const char *const ASTTypeStrings[10] = {
+static constexpr const char *const ASTTypeStrings[11] = {
     "Program",
     "Compound",
     "Assign",
@@ -29,7 +30,8 @@ static constexpr const char *const ASTTypeStrings[10] = {
     "VarDecl",
     "Type",
     "Var",
-    "Num"
+    "Num",
+    "String"
 };
 
 // Tree node parent class
@@ -154,6 +156,16 @@ class Var : public AST {
 class Num : public AST {
    public:
     Num(Token token);
+
+    std::string toString() const;
+
+   private:
+};
+
+// strings
+class String : public AST {
+   public:
+    String(Token token);
 
     std::string toString() const;
 

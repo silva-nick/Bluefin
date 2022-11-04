@@ -11,7 +11,8 @@ enum class TokenType : int {
     BSTR, BEND,
     PSTR, PEND,
     // Single char tokens
-    SEMI, COMMA, DOT, PLUS, MINUS,
+    SEMI, COMMA, DOT, MUTABLE, 
+    NULLABLE, PLUS, MINUS,
     MULT, INT_DIV, DIV, REM,
     // Comparison operators
     NOT, NOT_EQ,
@@ -25,16 +26,18 @@ enum class TokenType : int {
     STRING, STRING_LITERAL,
     // KEYWORDS
     AND, CLASS, ELSE, FALSE, FUN, 
-    FOR, IF, NIL, OR, RETURN, 
-    SUPER, THIS, TRUE, WHILE,
-};
-static constexpr const char *const TokenTypeStrings[43] = {
+    FOR, IF, NONE, OR, RETURN, 
+    SUPER, THIS, TRUE, WHILE
+}; 
+
+static constexpr const char *const TokenTypeStrings[45] = {
     "END",
     // Brackets
     "BSTR", "BEND",
     "PSTR", "PEND",
     // Single char tokens
-    "SEMI", "COMMA", "DOT", "PLUS", "MINUS",
+    "SEMI", "COMMA", "DOT", "MUTABLE",
+    "NULLABLE", "PLUS", "MINUS",
     "MULT", "INT_DIV", "DIV", "REM",
     // Comparison operators
     "NOT", "NOT_EQ",
@@ -48,8 +51,8 @@ static constexpr const char *const TokenTypeStrings[43] = {
     "STRING", "STRING_LITERAL",
     // KEYWORDS
     "AND", "CLASS", "ELSE", "FALSE", "FUN", 
-    "FOR", "IF", "NIL", "OR", "RETURN",
-    "SUPER", "THIS", "TRUE" , "WHILE",
+    "FOR", "IF", "NONE", "OR", "RETURN",
+    "SUPER", "THIS", "TRUE" , "WHILE"
 };
 // clang-format on
 
