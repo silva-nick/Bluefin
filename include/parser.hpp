@@ -8,10 +8,11 @@ namespace bluefin {
 class Lexer {
    public:
     Lexer(std::string expr, std::stringstream &buffer);
-    Token nextToken();
+    Token *nextToken();
     size_t line;
 
    private:
+    Token *lexNextToken();
     bool hasMoreChars();
     bool tokenHasMoreChars();
     char peek();
@@ -19,14 +20,14 @@ class Lexer {
     bool nextMatches(char c);
     std::string getCurrentTokenString();
     void skipWhitespace();
-    Token handleForwardSlash();
+    Token *handleForwardSlash();
     void skipComment();
-    Token nextNumber();
+    Token *nextNumber();
     bool isNextCharID();
-    Token nextID();
-    Token nextString();
-    Token makeToken(TokenType type);
-    Token makeToken(TokenType, std::string value);
+    Token *nextID();
+    Token *nextString();
+    Token *makeToken(TokenType type);
+    Token *makeToken(TokenType, std::string value);
 
     const std::string expr_;
     size_t tokenStart_;
@@ -80,7 +81,7 @@ class Parser {
     void throw_error(const std::string &message);
 
     Lexer lexer_;
-    Token currToken_;
+    Token *currToken_;
     std::stringstream &buffer_;
 };
 

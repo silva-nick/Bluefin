@@ -14,7 +14,7 @@ TEST(TypeChecking, NanTypeTest) {
     EXPECT_THAT(
         captureErrors("{type a=10;}"),
         testing::HasSubstr(
-            "[line 1] Error: Parser consume failed on tokenToken(ID,a)"));
+            "[line 1] Error: Parser consume failed on token Token(ID, a)"));
 }
 
 } // namespace

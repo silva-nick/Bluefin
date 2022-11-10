@@ -60,6 +60,7 @@ int Interpreter::visitProgram(const Program &node) {
     for (const AST &block : node.blocks) {
         this->visit(block);
     }
+
     return 0;
 }
 
@@ -74,8 +75,7 @@ int Interpreter::visitCompound(const Compound &node) {
 
 int Interpreter::visitBinOp(const BinOp &node) {
     printf("%s\n", node.toString().c_str());
-
-    switch (node.token.type) {
+    switch (node.token->type) {
         case TokenType::PLUS:
             return this->visit(node.left) + this->visit(node.right);
             break;
@@ -103,7 +103,7 @@ int Interpreter::visitBinOp(const BinOp &node) {
 int Interpreter::visitUnaryOp(const UnaryOp &node) {
     printf("%s\n", node.toString().c_str());
 
-    switch (node.token.type) {
+    switch (node.token->type) {
         case TokenType::PLUS:
             return +this->visit(node.child);
             break;
@@ -119,17 +119,19 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) {
 int Interpreter::visitAssign(const Assign &node) {
     printf("%s\n", node.toString().c_str());
 
-    this->global_.emplace(node.left.token.value, this->visit(node.right));
+    StringToken *token = (StringToken *)node.left.token;
+    this->global_.emplace(token->value, this->visit(node.right));
     return 0;
 }
 
 int Interpreter::visitVarDecl(const VarDecl &node) {
     printf("%s\n", node.toString().c_str());
 
-    if (node.expr.token.type == TokenType::END) {
-        this->global_.emplace(node.id.token.value, -999);
+    StringToken *token = (StringToken *)node.id.token;
+    if (node.expr.token->type == TokenType::END) {
+        this->global_.emplace(token->value, -999);
     } else {
-        this->global_.emplace(node.id.token.value, this->visit(node.expr));
+        this->global_.emplace(token->value, this->visit(node.expr));
     }
 
     return 0;
@@ -144,13 +146,15 @@ int Interpreter::visitType(const Type &node) {
 int Interpreter::visitVar(const Var &node) {
     printf("%s\n", node.toString().c_str());
 
-    return this->global_.at(node.token.value); // throws
+    StringToken *token = (StringToken *)node.token;
+    return this->global_.at(token->value); // throws
 }
 
 int Interpreter::visitNum(const Num &node) {
     printf("%s\n", node.toString().c_str());
 
-    return std::stoi(node.token.value);
+    IntegerToken *token = (IntegerToken *)node.token;
+    return token->value;
 }
 
 int Interpreter::visitString(const String &node) {
@@ -160,8 +164,6 @@ int Interpreter::visitString(const String &node) {
 
 int Interpreter::interpret() {
     printf("\nINTERPRETING...\n");
-
-    printf("root node %s \n", this->root_->token.toString().c_str());
 
     this->visit(*this->root_);
 

@@ -8,34 +8,34 @@ TEST(Syntax, NoBrackets) {
     EXPECT_THAT(
         captureErrors("a=10;"),
         testing::HasSubstr(
-            "[line 1] Error: Parser expected END instead found Token(ID,a)"));
+            "[line 1] Error: Parser expected END instead found Token(ID, a)"));
 
     EXPECT_THAT(
         captureErrors("int a=10;}"),
         testing::HasSubstr(
-            "[line 1] Error: Parser expected END instead found Token(INTEGER,int)"));
+            "[line 1] Error: Parser expected END instead found Token(INTEGER, int)"));
 
     EXPECT_THAT(
         captureErrors("{a=10;"),
         testing::HasSubstr(
-            "[line 1] Error: statement_list() ended in unexpected tokenToken(END,)"));
+            "[line 1] Error: statement_list() ended in unexpected token Token(END, )"));
 }
 
 TEST(Syntax, BadDecl) {
     EXPECT_THAT(
         captureErrors("{int a*b = 10;}"),
         testing::HasSubstr(
-            "[line 1] Error: statement_list() statement in unexpected tokenToken(MULT,)"));
+            "[line 1] Error: statement_list() statement in unexpected token Token(MULT, )"));
 
     EXPECT_THAT(
-        captureErrors("{int b=1;\nint a == 10;}"),
+        captureErrors("{int a == 10;}"),
         testing::HasSubstr(
-            "[line 2] Error: statement_list() ended in unexpected tokenToken(END,)"));
+            "[line 1] Error: statement_list() statement in unexpected token Token(EQ_EQ, )"));
 
     EXPECT_THAT(
         captureErrors("{int a =   10}"),
         testing::HasSubstr(
-            "[line 1] Error: statement_list() statement in unexpected tokenToken(BEND,)"));
+            "[line 1] Error: statement_list() statement in unexpected token Token(BEND, )"));
 }
 
 } // namespace

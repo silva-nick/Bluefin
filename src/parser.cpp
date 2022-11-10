@@ -52,67 +52,18 @@ std::string Lexer::getCurrentTokenString() {
     return this->expr_.substr(this->tokenStart_, this->tokenLen_);
 }
 
-Token Lexer::nextToken() {
+Token *Lexer::nextToken() {
     this->skipWhitespace();
 
     if (!hasMoreChars()) {
         return makeToken(TokenType::END);
     }
 
-    char firstChar = this->expr_[this->tokenStart_];
-    Token token;
-
-    if (isdigit(firstChar)) {
-        token = nextNumber();
-    } else if (isalpha(firstChar)) {
-        token = nextID();
-    } else if (firstChar == '/' && this->peek() == '*') {
-        // Block comment
-        this->tokenStart_ += 2;
-        this->skipComment();
-        return this->nextToken();
-    } else {
-        // clang-format off
-        switch (firstChar) {
-            case '{': token = makeToken(TokenType::BSTR); break;
-            case '}': token = makeToken(TokenType::BEND); break;
-            case '(': token = makeToken(TokenType::PSTR); break;
-            case ')': token = makeToken(TokenType::PEND); break;
-            case ';': token = makeToken(TokenType::SEMI); break;
-            case ',': token = makeToken(TokenType::COMMA); break;
-            case '.': token = makeToken(TokenType::DOT); break;
-            case '~': token = makeToken(TokenType::MUTABLE); break;
-            case '?': token = makeToken(TokenType::NULLABLE); break;
-            case '!': 
-                token = nextMatches('=') ? makeToken(TokenType::NOT_EQ) : makeToken(TokenType::NOT); 
-                break;
-            case '=':
-                token = nextMatches('=') ? makeToken(TokenType::EQ_EQ) : makeToken(TokenType::EQ); 
-                break;
-            case '>':
-                token = nextMatches('=') ? makeToken(TokenType::GREATER_EQ) : makeToken(TokenType::GREATER); 
-                break;
-            case '<':
-                token = nextMatches('=') ? makeToken(TokenType::LESS_EQ) : makeToken(TokenType::LESS); 
-                break;
-            case '+': token = makeToken(TokenType::PLUS); break;
-            case '-': token = makeToken(TokenType::MINUS); break;
-            case '*': token = makeToken(TokenType::MULT); break;
-            case '/': token = handleForwardSlash(); break;
-            case '%': token = makeToken(TokenType::REM); break;
-            case '"': token = nextString(); break;
-            case '\n': line++; break;
-            default: 
-                error(line, "Unexpected Token.", buffer_); 
-                this->tokenStart_ += 1;
-                return nextToken();
-        }
-        // clang-format on
-    }
+    Token *token = lexNextToken();
 
     printf(
         "next token %s %d %d\n",
-        token.toString().c_str(),
+        token->toString().c_str(),
         tokenStart_,
         tokenLen_);
 
@@ -122,12 +73,62 @@ Token Lexer::nextToken() {
     return token;
 }
 
+Token *Lexer::lexNextToken() {
+    char firstChar = this->expr_[this->tokenStart_];
+    if (isdigit(firstChar)) {
+        return nextNumber();
+    } else if (isalpha(firstChar)) {
+        return nextID();
+    } else if (firstChar == '/' && this->peek() == '*') {
+        // Block comment
+        this->tokenStart_ += 2;
+        this->skipComment();
+    } else {
+        // clang-format off
+        switch (firstChar) {
+            case '{': return makeToken(TokenType::BSTR);
+            case '}': return makeToken(TokenType::BEND);
+            case '(': return makeToken(TokenType::PSTR);
+            case ')': return makeToken(TokenType::PEND);
+            case ';': return makeToken(TokenType::SEMI);
+            case ',': return makeToken(TokenType::COMMA);
+            case '.': return makeToken(TokenType::DOT);
+            case '~': return makeToken(TokenType::MUTABLE);
+            case '?': return makeToken(TokenType::NULLABLE);
+            case '!': 
+                return nextMatches('=') ? makeToken(TokenType::NOT_EQ) : makeToken(TokenType::NOT); 
+            case '=':
+                return nextMatches('=') ? makeToken(TokenType::EQ_EQ) : makeToken(TokenType::EQ); 
+            case '>':
+                return nextMatches('=') ? makeToken(TokenType::GREATER_EQ) : makeToken(TokenType::GREATER); 
+            case '<':
+                return nextMatches('=') ? makeToken(TokenType::LESS_EQ) : makeToken(TokenType::LESS); 
+            case '+': return makeToken(TokenType::PLUS); 
+            case '-': return makeToken(TokenType::MINUS); 
+            case '*': return makeToken(TokenType::MULT); 
+            case '/': return handleForwardSlash(); 
+            case '%': return makeToken(TokenType::REM); 
+            case '"': return nextString(); 
+            case '\n': line++; this->tokenStart_ += 1; break;
+            default: 
+                error(line, "Unexpected Token.", buffer_); 
+                this->tokenStart_ += 1;
+                break;
+        }
+        // clang-format on
+    }
+
+    Token *res = this->nextToken();
+    this->tokenLen_ = 0; // hacky
+    return res;
+}
+
 void Lexer::skipWhitespace() {
-    while (hasMoreChars() && this->expr_[this->tokenStart_] == ' ')
+    while (hasMoreChars() && (this->expr_[this->tokenStart_] == ' ' || this->expr_[this->tokenStart_] == '\t'))
         this->tokenStart_++;
 }
 
-Token Lexer::handleForwardSlash() {
+Token *Lexer::handleForwardSlash() {
     if (this->peek() == '/') {
         this->tokenLen_ = 2;
         return makeToken(TokenType::INT_DIV);
@@ -144,7 +145,7 @@ void Lexer::skipComment() {
     this->tokenStart_ += 2;
 }
 
-Token Lexer::nextNumber() {
+Token *Lexer::nextNumber() {
     while (tokenHasMoreChars() && isdigit(peek()))
         this->tokenLen_++;
 
@@ -167,7 +168,7 @@ bool Lexer::isNextCharID() {
         ((nextChar = peek()) == '_' || isalnum(nextChar));
 }
 
-Token Lexer::nextID() {
+Token *Lexer::nextID() {
     while (isNextCharID())
         this->tokenLen_++;
 
@@ -178,7 +179,7 @@ Token Lexer::nextID() {
         : makeToken(TokenType::ID, tokenString);
 }
 
-Token Lexer::nextString() {
+Token *Lexer::nextString() {
     while (peek() != '"' && tokenHasMoreChars()) {
         if (peek() == '\n')
             this->line++;
@@ -196,12 +197,20 @@ Token Lexer::nextString() {
     return makeToken(TokenType::STRING_LITERAL, tokenString);
 }
 
-Token Lexer::makeToken(TokenType type) {
+Token *Lexer::makeToken(TokenType type) {
     return makeToken(type, "");
 }
 
-Token Lexer::makeToken(TokenType type, std::string value) {
-    return Token(type, value, line);
+Token *Lexer::makeToken(TokenType type, std::string value) {
+    switch (type) {
+        case TokenType::INTEGER_LITERAL:
+            return new IntegerToken(type, line, value);
+        case TokenType::DOUBLE_LITERAL:
+            return new DoubleToken(type, line, value);
+        case TokenType::STRING:
+        default:
+            return new StringToken(type, line, value);
+    }
 }
 // end Lexer
 
@@ -215,10 +224,11 @@ Parser::Parser(Lexer lexer, std::stringstream &buffer)
 void Parser::consume(TokenType type) {
     printf("Consume: %s\n", TokenTypeStrings[static_cast<int>(type)]);
 
-    if (type != this->currToken_.type) {
+    if (type != this->currToken_->type) {
         throw_error(
-            "Parser consume failed on token" + this->currToken_.toString());
+            "Parser consume failed on token " + this->currToken_->toString());
     }
+
     this->currToken_ = this->lexer_.nextToken();
 }
 
@@ -226,9 +236,10 @@ void Parser::consume(TokenType type) {
 AST *Parser::parse() {
     AST *node = this->program();
 
-    if (this->currToken_.type != TokenType::END) {
+    if (this->currToken_->type != TokenType::END) {
         throw_error(
-            "Parser expected END instead found " + this->currToken_.toString());
+            "Parser expected END instead found " +
+            this->currToken_->toString());
     }
 
     printf("parsing finished\n");
@@ -239,9 +250,9 @@ AST *Parser::parse() {
 //         | program compound_statement
 AST *Parser::program() {
     Program *node = new Program();
-    Token op = this->currToken_;
+    Token *op = this->currToken_;
 
-    while (op.type == TokenType::BSTR) {
+    while (op->type == TokenType::BSTR) {
         node->blocks.push_back(*this->compound_statement());
         op = this->currToken_;
     }
@@ -269,21 +280,21 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
     AST *node = this->statement();
     std::vector<std::reference_wrapper<AST>> result = {*node};
 
-    if (this->currToken_.type != TokenType::SEMI) {
+    if (this->currToken_->type != TokenType::SEMI) {
         throw_error(
-            "statement_list() statement in unexpected token" +
-            this->currToken_.toString());
+            "statement_list() statement in unexpected token " +
+            this->currToken_->toString());
     }
 
     do {
         this->consume(TokenType::SEMI);
         result.push_back(*this->statement());
-    } while (this->currToken_.type == TokenType::SEMI);
+    } while (this->currToken_->type == TokenType::SEMI) ;
 
-    if (this->currToken_.type != TokenType::BEND) {
+    if (this->currToken_->type != TokenType::BEND) {
         throw_error(
-            "statement_list() ended in unexpected token" +
-            this->currToken_.toString());
+            "statement_list() ended in unexpected token " +
+            this->currToken_->toString());
     }
 
     return result;
@@ -293,7 +304,7 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
 //           | assignment_expression ";"
 //           | white space
 AST *Parser::statement() {
-    switch (this->currToken_.type) {
+    switch (this->currToken_->type) {
         case TokenType::BSTR:
             return this->compound_statement();
         case TokenType::INTEGER:
@@ -310,11 +321,11 @@ AST *Parser::statement() {
 // additive_expression : multiplicative((+|-)multiplicative)*
 AST *Parser::additive_expr() {
     AST *node = this->multiplicative_expr();
-    Token op = this->currToken_;
+    Token *op = this->currToken_;
 
-    while (op.type == TokenType::PLUS || op.type == TokenType::MINUS) {
-        printf("op     :%s\n", op.toString().c_str());
-        if (op.type == TokenType::PLUS) {
+    while (op->type == TokenType::PLUS || op->type == TokenType::MINUS) {
+        printf("op     :%s\n", op->toString().c_str());
+        if (op->type == TokenType::PLUS) {
             this->consume(TokenType::PLUS);
         } else {
             this->consume(TokenType::MINUS);
@@ -330,16 +341,16 @@ AST *Parser::additive_expr() {
 // multiplicative_expression : unary_expression((*|/|%)unary_expression)*
 AST *Parser::multiplicative_expr() {
     AST *node = this->unary_expr();
-    Token op = this->currToken_;
+    Token *op = this->currToken_;
 
-    while (op.type == TokenType::MULT || op.type == TokenType::DIV ||
-           op.type == TokenType::REM) {
-        printf("op     :%s\n", op.toString().c_str());
-        if (op.type == TokenType::MULT) {
+    while (op->type == TokenType::MULT || op->type == TokenType::DIV ||
+           op->type == TokenType::REM) {
+        printf("op     :%s\n", op->toString().c_str());
+        if (op->type == TokenType::MULT) {
             this->consume(TokenType::MULT);
-        } else if (op.type == TokenType::DIV) {
+        } else if (op->type == TokenType::DIV) {
             this->consume(TokenType::DIV);
-        } else if (op.type == TokenType::INT_DIV) {
+        } else if (op->type == TokenType::INT_DIV) {
             this->consume(TokenType::INT_DIV);
         } else {
             this->consume(TokenType::REM);
@@ -354,9 +365,9 @@ AST *Parser::multiplicative_expr() {
 // unary_expression = primary_expression
 //                  | unary_operator primary_expression
 AST *Parser::unary_expr() {
-    Token op = this->currToken_;
+    Token *op = this->currToken_;
 
-    switch (op.type) {
+    switch (op->type) {
         case TokenType::PLUS:
             this->consume(TokenType::PLUS);
             return new UnaryOp(*this->primary_expr(), op);
@@ -372,10 +383,10 @@ AST *Parser::unary_expr() {
 //                    | constant
 //                    | "(" expression ")"
 AST *Parser::primary_expr() {
-    Token expr = this->currToken_;
-    printf("primary_expr :%s\n", expr.toString().c_str());
+    Token *expr = this->currToken_;
+    printf("primary_expr :%s\n", expr->toString().c_str());
 
-    switch (expr.type) {
+    switch (expr->type) {
         case TokenType::INTEGER_LITERAL:
             this->consume(TokenType::INTEGER_LITERAL);
             return new Num(expr);
@@ -396,7 +407,7 @@ AST *Parser::primary_expr() {
             return new Var(expr);
         default:
             throw_error(
-                "Token type not primary expression: " + expr.toString());
+                "Token type not primary expression: " + expr->toString());
     }
 }
 
@@ -407,16 +418,16 @@ AST *Parser::assignment_expr() {
     // This currently is a hacky fix
     // need to find a way for it to parse int x = a+2;
     // i.e. an additive expression;
-    Token lhs = this->currToken_;
-    if (lhs.type == TokenType::INTEGER_LITERAL ||
-        lhs.type == TokenType::DOUBLE_LITERAL) {
+    Token *lhs = this->currToken_;
+    if (lhs->type == TokenType::INTEGER_LITERAL ||
+        lhs->type == TokenType::DOUBLE_LITERAL) {
         return additive_expr();
     }
 
     AST *left = this->unary_expr();
 
-    Token assignmentOp = this->currToken_;
-    if (currToken_.type == TokenType::SEMI) {
+    Token *assignmentOp = this->currToken_;
+    if (currToken_->type == TokenType::SEMI) {
         return left;
     }
 
@@ -433,7 +444,7 @@ AST *Parser::declaration() {
     AST *id = new Var(this->currToken_);
     this->consume(TokenType::ID);
 
-    if (this->currToken_.type == TokenType::EQ) {
+    if (this->currToken_->type == TokenType::EQ) {
         this->consume(TokenType::EQ);
 
         AST *rhs = this->assignment_expr();
@@ -447,9 +458,9 @@ AST *Parser::declaration() {
 // type_specifier = int
 //                | double
 AST *Parser::type_spec() {
-    Token type = this->currToken_;
+    Token *type = this->currToken_;
 
-    switch (type.type) {
+    switch (type->type) {
         case TokenType::INTEGER:
             this->consume(TokenType::INTEGER);
             break;
@@ -460,7 +471,7 @@ AST *Parser::type_spec() {
             this->consume(TokenType::STRING);
             break;
         default:
-            throw_error("Parser found invalid type: " + type.toString());
+            throw_error("Parser found invalid type: " + type->toString());
     }
 
     return new Type(type);

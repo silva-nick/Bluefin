@@ -31,16 +31,15 @@ static constexpr const char *const ASTTypeStrings[11] = {
     "Type",
     "Var",
     "Num",
-    "String"
-};
+    "String"};
 
 // Tree node parent class
 class AST {
    public:
     AST();
-    AST(Token value, ASTType nodeType);
+    AST(Token *value, ASTType nodeType);
 
-    Token token;
+    Token *token;
     ASTType type;
 
     virtual std::string toString() const;
@@ -77,7 +76,7 @@ class Compound : public AST {
 // Assignment
 class Assign : public AST {
    public:
-    Assign(AST &left, Token op, AST &right);
+    Assign(AST &left, Token *op, AST &right);
 
     AST &left; // Variable
     AST &right; // Expression
@@ -88,7 +87,7 @@ class Assign : public AST {
 // Binary operators
 class BinOp : public AST {
    public:
-    BinOp(AST &left, Token op, AST &right);
+    BinOp(AST &left, Token *op, AST &right);
 
     AST &left;
     AST &right;
@@ -101,7 +100,7 @@ class BinOp : public AST {
 // Unary operators
 class UnaryOp : public AST {
    public:
-    UnaryOp(AST &node, Token op);
+    UnaryOp(AST &node, Token *op);
 
     AST &child;
 
@@ -135,7 +134,7 @@ class VarDecl : public AST {
 // Variable types
 class Type : public AST {
    public:
-    Type(Token token);
+    Type(Token *token);
 
     std::string toString() const;
 
@@ -145,7 +144,7 @@ class Type : public AST {
 // Variables
 class Var : public AST {
    public:
-    Var(Token token);
+    Var(Token *token);
 
     std::string toString() const;
 
@@ -155,7 +154,7 @@ class Var : public AST {
 // Numbers / terminals
 class Num : public AST {
    public:
-    Num(Token token);
+    Num(Token *token);
 
     std::string toString() const;
 
@@ -165,7 +164,7 @@ class Num : public AST {
 // strings
 class String : public AST {
    public:
-    String(Token token);
+    String(Token *token);
 
     std::string toString() const;
 

@@ -60,14 +60,48 @@ static constexpr const char *const TokenTypeStrings[45] = {
 class Token {
    public:
     Token();
-    Token(TokenType type, std::string value, size_t line);
+    Token(TokenType type, size_t line);
+
     TokenType type;
-    std::string value; // literal object
     size_t line;
+
+    virtual std::string toString() const;
+
+   protected:
+    std::string getTokenTypeString() const;
+};
+
+class IntegerToken : public Token {
+   public:
+    IntegerToken();
+    IntegerToken(TokenType type, size_t line, std::string value);
+
+    int value;
     std::string toString() const;
 
    private:
-    std::string getTokenTypeString() const;
+};
+
+class DoubleToken : public Token {
+   public:
+    DoubleToken();
+    DoubleToken(TokenType type, size_t line, std::string value);
+
+    double value;
+    std::string toString() const;
+
+   private:
+};
+
+class StringToken : public Token {
+   public:
+    StringToken();
+    StringToken(TokenType type, size_t line, std::string value);
+
+    std::string value;
+    std::string toString() const;
+
+   private:
 };
 
 } // namespace bluefin

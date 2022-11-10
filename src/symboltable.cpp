@@ -90,15 +90,17 @@ int SymbolTableBuilder::visitUnaryOp(const UnaryOp &node) {
 }
 
 int SymbolTableBuilder::visitAssign(const Assign &node) {
-    std::string varName = node.left.token.value;
+    std::string varName = ((StringToken *)node.left.token)->value;
     this->symbols_.lookup(varName); // Throws if var hasn't been defined
     this->visit(node.right);
     return 0;
 }
 
 int SymbolTableBuilder::visitVarDecl(const VarDecl &node) {
-    Symbol typeSymbol = this->symbols_.lookup(node.typeNode.token.value);
-    VarSymbol varSymbol = VarSymbol(node.id.token.value, typeSymbol);
+    Symbol typeSymbol =
+        this->symbols_.lookup(((StringToken *)node.typeNode.token)->value);
+    VarSymbol varSymbol =
+        VarSymbol(((StringToken *)node.id.token)->value, typeSymbol);
     this->symbols_.define(varSymbol);
     return 0;
 }
@@ -108,7 +110,7 @@ int SymbolTableBuilder::visitType(const Type &node) {
 }
 
 int SymbolTableBuilder::visitVar(const Var &node) {
-    std::string varName = node.token.value;
+    std::string varName = ((StringToken *)node.token)->value;
     this->symbols_.lookup(varName); // Throws if var hasn't been defined
     return 0;
 }

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include <string>
+#include <regex>
 #include <sstream>
+#include <string>
 #include "ast.hpp"
 #include "interpreter.hpp"
 #include "parser.hpp"

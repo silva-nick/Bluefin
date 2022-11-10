@@ -17,12 +17,14 @@ int run(const std::string &expr, std::stringstream &buffer) {
     Parser parser(lexer, buffer);
 
     AST *root = parser.parse();
-    if (ERROR_STATUS)
+    if (ERROR_STATUS) {
         return ERROR_STATUS;
-
+    }
+    
     SymbolTableBuilder symbols(root, buffer);
-    if (ERROR_STATUS)
+    if (ERROR_STATUS) {
         return ERROR_STATUS;
+    }
 
     Interpreter interpreter(root, buffer);
     interpreter.interpret();

@@ -30,6 +30,8 @@ void runREPL() {
             break;
         }
 
+        input = std::regex_replace(input, std::regex(R"(\\n)"), "\n"); 
+
         // Eval and print
         std::cout << bluefin::run(input) << std::endl;
         bluefin::ERROR_STATUS = 0;
