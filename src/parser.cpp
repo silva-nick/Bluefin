@@ -124,7 +124,9 @@ Token *Lexer::lexNextToken() {
 }
 
 void Lexer::skipWhitespace() {
-    while (hasMoreChars() && (this->expr_[this->tokenStart_] == ' ' || this->expr_[this->tokenStart_] == '\t'))
+    while (hasMoreChars() &&
+           (this->expr_[this->tokenStart_] == ' ' ||
+            this->expr_[this->tokenStart_] == '\t'))
         this->tokenStart_++;
 }
 
@@ -289,7 +291,7 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
     do {
         this->consume(TokenType::SEMI);
         result.push_back(*this->statement());
-    } while (this->currToken_->type == TokenType::SEMI) ;
+    } while (this->currToken_->type == TokenType::SEMI);
 
     if (this->currToken_->type != TokenType::BEND) {
         throw_error(

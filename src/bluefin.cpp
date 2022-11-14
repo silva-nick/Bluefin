@@ -20,7 +20,7 @@ int run(const std::string &expr, std::stringstream &buffer) {
     if (ERROR_STATUS) {
         return ERROR_STATUS;
     }
-    
+
     SymbolTableBuilder symbols(root, buffer);
     if (ERROR_STATUS) {
         return ERROR_STATUS;

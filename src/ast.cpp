@@ -11,7 +11,8 @@ std::string AST::toString() const {
         return "token:" + this->token->toString() +
             ", type:" + ASTTypeStrings[static_cast<int>(this->type)];
     } else {
-        return std::string("token: ???, type:") + ASTTypeStrings[static_cast<int>(this->type)];
+        return std::string("token: ???, type:") +
+            ASTTypeStrings[static_cast<int>(this->type)];
     }
 }
 // end AST
