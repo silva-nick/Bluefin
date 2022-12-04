@@ -16,14 +16,15 @@ ast_data = {
 }
 
 # DEFINE HEADER FILE
-ast_hpp = open("./include/asttest.hpp", "w")
+ast_hpp = open("./include/ast.hpp", "w")
 
-ast_hpp.write("""
-#pragma once
+ast_hpp.write(
+"""#pragma once
 
 #include <functional>
 #include <string>
 #include <vector>
+#include <boost/any.hpp>
 #include "token.hpp"
 
 namespace bluefin {
@@ -42,12 +43,14 @@ for k in ast_data:
 ast_hpp.write("};\n")
 
 # write root class
-ast_hpp.write("""
+ast_hpp.write(
+"""class Visitor;
+
 // Tree node parent class
 class AST {
    public:
     AST();
-    virtual void accept(Visitor *visitor) const = 0;
+    virtual boost::any accept(Visitor *visitor) const = 0;
    private:
 };
 """)
@@ -64,7 +67,7 @@ for k,v in ast_data.items():
         {}({});
         {}
 
-        void accept(Visitor *visitor) const;
+        boost::any accept(Visitor *visitor) const;
 
     private:
     }};
@@ -77,7 +80,7 @@ class Visitor {
 public:""")
 
 for k in ast_data:
-    ast_hpp.write("virtual void visit{}(const {} *node) const = 0;\n".format(k, k))
+    ast_hpp.write("virtual boost::any visit{}(const {} *node) const = 0;\n".format(k, k))
     
 ast_hpp.write("\n};\n")
 
@@ -86,10 +89,10 @@ ast_hpp.write("\n} // namespace bluefin")
 ast_hpp.close()
 
 # DEFINE CPP FILE
-ast_cpp = open("./src/asttest.cpp", "w")
+ast_cpp = open("./src/ast.cpp", "w")
 
-ast_cpp.write("""
-#include "asttest.hpp"
+ast_cpp.write(
+"""#include "ast.hpp"
 
 namespace bluefin {
 
@@ -103,7 +106,7 @@ for k,v in ast_data.items():
     ast_cpp.write("""
     {}::{}({}) {} {{}}
 
-    void {}::accept(Visitor *visitor) const{{
+    boost::any {}::accept(Visitor *visitor) const{{
         visitor->visit{}(this);
     }}
 

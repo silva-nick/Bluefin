@@ -1,6 +1,8 @@
 # docker compose up --build -d
 # docker exec -it bf bash
 version: "3.9"
+volumes:
+  boost:
 services:
   bf:
     build:
@@ -8,6 +10,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/usr/src/bluefin/
+      - boost:/usr/include/boost
     stdin_open: true
     tty: true
     working_dir: /usr/src/bluefin/

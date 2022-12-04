@@ -61,8 +61,19 @@ unary_operator = +|-
 
 ```bash
 docker compose up -d --build
+docker cp bf:/usr/include/boost/ ./extern/boost
 docker exec -ti bf bash
 ```
+
+**use this:**
+
+```bash
+
+./utils/config.sh
+
+./utils/build.sh
+```
+
 
 **Probably just use build.sh in ./utils**
 

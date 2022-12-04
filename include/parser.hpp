@@ -68,7 +68,7 @@ class Parser {
     void consume(TokenType type);
     AST *program();
     AST *compound_statement();
-    std::vector<std::reference_wrapper<AST>> statement_list();
+    std::vector<AST *> statement_list();
     AST *statement();
     AST *additive_expr();
     AST *multiplicative_expr();

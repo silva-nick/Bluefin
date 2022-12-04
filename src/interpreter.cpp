@@ -3,79 +3,34 @@
 namespace bluefin {
 namespace {} // namespace
 
-ASTTraverser::ASTTraverser() {}
+Interpreter::Interpreter(std::stringstream &buffer) : buffer_(buffer) {}
 
-ASTTraverser::ASTTraverser(AST *root) {
-    this->root_ = root;
-}
-
-int ASTTraverser::visit(const AST &node) {
-    printf("visiting %s \n", ASTTypeStrings[static_cast<int>(node.type)]);
-    switch (node.type) {
-        case ASTType::Program:
-            return visitProgram(static_cast<const Program &>(node));
-        case ASTType::Compound:
-            return visitCompound(static_cast<const Compound &>(node));
-        case ASTType::BinOp:
-            return visitBinOp(static_cast<const BinOp &>(node));
-        case ASTType::UnaryOp:
-            return visitUnaryOp(static_cast<const UnaryOp &>(node));
-        case ASTType::NoOp:
-            return 0;
-        case ASTType::Assign:
-            return visitAssign(static_cast<const Assign &>(node));
-        case ASTType::VarDecl:
-            return visitVarDecl(static_cast<const VarDecl &>(node));
-        case ASTType::Type:
-            return visitType(static_cast<const Type &>(node));
-        case ASTType::Var:
-            return visitVar(static_cast<const Var &>(node));
-        case ASTType::Num:
-            return visitNum(static_cast<const Num &>(node));
-        case ASTType::String:
-            return visitString(static_cast<const String &>(node));
-        default:
-            throw new std::logic_error(
-                "Interpreter found invalid AST node" + node.toString());
-    }
-}
-// end ASTTraverser
-
-Interpreter::Interpreter(AST *root, std::stringstream &buffer)
-    : ASTTraverser(root), buffer_(buffer) {}
-
-std::string Interpreter::toString() const {
-    std::string out = "Global vars: \n";
+void Interpreter::printVariables() const {
+    std::cout << "Global vars: \n";
 
     for (const auto &x : this->global_) {
-        out += x.first + ": " + std::to_string(x.second) + "\n";
+        std::cout << x.first + ": " + std::to_string(x.second) << std::endl;
     }
-
-    return out;
 }
 
-int Interpreter::visitProgram(const Program &node) {
-    printf("%s\n", node.toString().c_str());
-
-    for (const AST &block : node.blocks) {
-        this->visit(block);
-    }
-
-    return 0;
+void Interpreter::evaluate(const AST *node) const {
+    return node->accept((Visitor *)this);
 }
 
-int Interpreter::visitCompound(const Compound &node) {
-    printf("%s\n", node.toString().c_str());
-
-    for (AST &child : node.children) {
-        this->visit(child);
+void Interpreter::visitProgram(const Program *node) const {
+    for (const AST *compound : node->compounds) {
+        evaluate(compound);
     }
-    return 0;
 }
 
-int Interpreter::visitBinOp(const BinOp &node) {
-    printf("%s\n", node.toString().c_str());
-    switch (node.token->type) {
+void Interpreter::visitCompound(const Compound *node) const {
+    for (AST *statement : node->statements) {
+        evaluate(statement);
+    }
+}
+
+void Interpreter::visitBinOp(const BinOp *node) const {
+    switch (node->op->type) {
         case TokenType::PLUS:
             return this->visit(node.left) + this->visit(node.right);
             break;
@@ -100,7 +55,7 @@ int Interpreter::visitBinOp(const BinOp &node) {
     }
 }
 
-int Interpreter::visitUnaryOp(const UnaryOp &node) {
+void Interpreter::visitUnaryOp(const UnaryOp *node) {
     printf("%s\n", node.toString().c_str());
 
     switch (node.token->type) {
@@ -116,7 +71,7 @@ int Interpreter::visitUnaryOp(const UnaryOp &node) {
     }
 }
 
-int Interpreter::visitAssign(const Assign &node) {
+void Interpreter::visitAssign(const Assign *node) {
     printf("%s\n", node.toString().c_str());
 
     StringToken *token = (StringToken *)node.left.token;
@@ -124,7 +79,7 @@ int Interpreter::visitAssign(const Assign &node) {
     return 0;
 }
 
-int Interpreter::visitVarDecl(const VarDecl &node) {
+void Interpreter::visitVarDecl(const VarDecl *node) {
     printf("%s\n", node.toString().c_str());
 
     StringToken *token = (StringToken *)node.id.token;
@@ -137,32 +92,32 @@ int Interpreter::visitVarDecl(const VarDecl &node) {
     return 0;
 }
 
-int Interpreter::visitType(const Type &node) {
+void Interpreter::visitType(const Type *node) {
     printf("%s\n", node.toString().c_str());
 
     return 0;
 }
 
-int Interpreter::visitVar(const Var &node) {
+void Interpreter::visitVar(const Var *node) {
     printf("%s\n", node.toString().c_str());
 
     StringToken *token = (StringToken *)node.token;
     return this->global_.at(token->value); // throws
 }
 
-int Interpreter::visitNum(const Num &node) {
+void Interpreter::visitNum(const Num *node) {
     printf("%s\n", node.toString().c_str());
 
     IntegerToken *token = (IntegerToken *)node.token;
     return token->value;
 }
 
-int Interpreter::visitString(const String &node) {
+void Interpreter::visitString(const String *node) {
     printf("%s\n", node.toString().c_str());
     return -27;
 }
 
-int Interpreter::interpret() {
+void Interpreter::interpret() {
     printf("\nINTERPRETING...\n");
 
     this->visit(*this->root_);

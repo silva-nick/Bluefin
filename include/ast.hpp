@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/any.hpp>
 #include <functional>
 #include <string>
 #include <vector>
@@ -8,167 +9,197 @@
 namespace bluefin {
 
 enum class ASTType : int {
-    Program,
-    Compound,
-    Assign,
     BinOp,
-    UnaryOp,
-    NoOp,
-    VarDecl,
-    Type,
+    Double,
+    Program,
     Var,
-    Num,
-    String
+    Type,
+    Assign,
+    String,
+    UnaryOp,
+    VarDecl,
+    NoOp,
+    Compound,
+    Integer,
 };
-static constexpr const char *const ASTTypeStrings[11] = {
-    "Program",
-    "Compound",
-    "Assign",
+static constexpr const char *const ASTTypeStrings[12] = {
     "BinOp",
-    "UnaryOp",
-    "NoOp",
-    "VarDecl",
-    "Type",
+    "Double",
+    "Program",
     "Var",
-    "Num",
-    "String"};
+    "Type",
+    "Assign",
+    "String",
+    "UnaryOp",
+    "VarDecl",
+    "NoOp",
+    "Compound",
+    "Integer",
+};
+class Visitor;
 
 // Tree node parent class
 class AST {
    public:
     AST();
-    AST(Token *value, ASTType nodeType);
-
-    Token *token;
-    ASTType type;
-
-    virtual std::string toString() const;
+    virtual boost::any accept(Visitor *visitor) const = 0;
 
    private:
 };
 
-// Program root node
-class Program : public AST {
-   public:
-    Program();
-
-    // Compound
-    std::vector<std::reference_wrapper<AST>> blocks;
-
-    std::string toString() const;
-
-   private:
-};
-
-// Compound expression node
-class Compound : public AST {
-   public:
-    Compound();
-
-    // assign or no-op
-    std::vector<std::reference_wrapper<AST>> children;
-
-    std::string toString() const;
-
-   private:
-};
-
-// Assignment
-class Assign : public AST {
-   public:
-    Assign(AST &left, Token *op, AST &right);
-
-    AST &left; // Variable
-    AST &right; // Expression
-
-    std::string toString() const;
-};
-
-// Binary operators
+// BinOp node
 class BinOp : public AST {
    public:
-    BinOp(AST &left, Token *op, AST &right);
+    BinOp(AST *left, Token *op, AST *right);
+    AST *left;
+    Token *op;
+    AST *right;
 
-    AST &left;
-    AST &right;
-
-    std::string toString() const;
+    boost::any accept(Visitor *visitor) const;
 
    private:
 };
 
-// Unary operators
+// Double node
+class Double : public AST {
+   public:
+    Double(DoubleToken *value);
+    DoubleToken *value;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// Program node
+class Program : public AST {
+   public:
+    Program(std::vector<AST *> compounds);
+    std::vector<AST *> compounds;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// Var node
+class Var : public AST {
+   public:
+    Var(StringToken *varName);
+    StringToken *varName;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// Type node
+class Type : public AST {
+   public:
+    Type(StringToken *typeName);
+    StringToken *typeName;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// Assign node
+class Assign : public AST {
+   public:
+    Assign(AST *left, Token *op, AST *right);
+    AST *left;
+    Token *op;
+    AST *right;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// String node
+class String : public AST {
+   public:
+    String(StringToken *value);
+    StringToken *value;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// UnaryOp node
 class UnaryOp : public AST {
    public:
-    UnaryOp(AST &node, Token *op);
+    UnaryOp(AST *node, Token *op);
+    AST *node;
+    Token *op;
 
-    AST &child;
-
-    std::string toString() const;
+    boost::any accept(Visitor *visitor) const;
 
    private:
 };
 
-// Empty space / lines
+// VarDecl node
+class VarDecl : public AST {
+   public:
+    VarDecl(AST *typeNode, AST *id, AST *expr);
+    AST *typeNode;
+    AST *id;
+    AST *expr;
+
+    boost::any accept(Visitor *visitor) const;
+
+   private:
+};
+
+// NoOp node
 class NoOp : public AST {
    public:
     NoOp();
 
-   private:
-};
-
-// Variable declaration node
-class VarDecl : public AST {
-   public:
-    VarDecl(AST &typeNode, AST &varNode, AST &rhsNode);
-
-    std::string toString() const;
-
-    AST &typeNode;
-    AST &id;
-    AST &expr;
+    boost::any accept(Visitor *visitor) const;
 
    private:
 };
 
-// Variable types
-class Type : public AST {
+// Compound node
+class Compound : public AST {
    public:
-    Type(Token *token);
+    Compound(std::vector<AST *> statements);
+    std::vector<AST *> statements;
 
-    std::string toString() const;
+    boost::any accept(Visitor *visitor) const;
 
    private:
 };
 
-// Variables
-class Var : public AST {
+// Integer node
+class Integer : public AST {
    public:
-    Var(Token *token);
+    Integer(IntegerToken *value);
+    IntegerToken *value;
 
-    std::string toString() const;
+    boost::any accept(Visitor *visitor) const;
 
    private:
 };
 
-// Numbers / terminals
-class Num : public AST {
+// Abstract visitor class
+class Visitor {
    public:
-    Num(Token *token);
-
-    std::string toString() const;
-
-   private:
-};
-
-// strings
-class String : public AST {
-   public:
-    String(Token *token);
-
-    std::string toString() const;
-
-   private:
+    virtual boost::any visitBinOp(const BinOp *node) const = 0;
+    virtual boost::any visitDouble(const Double *node) const = 0;
+    virtual boost::any visitProgram(const Program *node) const = 0;
+    virtual boost::any visitVar(const Var *node) const = 0;
+    virtual boost::any visitType(const Type *node) const = 0;
+    virtual boost::any visitAssign(const Assign *node) const = 0;
+    virtual boost::any visitString(const String *node) const = 0;
+    virtual boost::any visitUnaryOp(const UnaryOp *node) const = 0;
+    virtual boost::any visitVarDecl(const VarDecl *node) const = 0;
+    virtual boost::any visitNoOp(const NoOp *node) const = 0;
+    virtual boost::any visitCompound(const Compound *node) const = 0;
+    virtual boost::any visitInteger(const Integer *node) const = 0;
 };
 
 } // namespace bluefin

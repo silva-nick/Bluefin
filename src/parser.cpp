@@ -255,7 +255,7 @@ AST *Parser::program() {
     Token *op = this->currToken_;
 
     while (op->type == TokenType::BSTR) {
-        node->blocks.push_back(*this->compound_statement());
+        node->compounds.push_back(this->compound_statement());
         op = this->currToken_;
     }
 
@@ -265,12 +265,12 @@ AST *Parser::program() {
 // compound_statement = "{" statement_list "}"
 AST *Parser::compound_statement() {
     this->consume(TokenType::BSTR);
-    std::vector<std::reference_wrapper<AST>> children = this->statement_list();
+    std::vector<AST *> statements = this->statement_list();
     this->consume(TokenType::BEND);
 
     Compound *root = new Compound();
-    for (AST &child : children) {
-        root->children.push_back(child);
+    for (AST *statement : statements) {
+        root->statements.push_back(statement);
     }
 
     return root;
@@ -278,9 +278,9 @@ AST *Parser::compound_statement() {
 
 // statement_list = statement
 //                | statement statement_list
-std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
+std::vector<AST *> Parser::statement_list() {
     AST *node = this->statement();
-    std::vector<std::reference_wrapper<AST>> result = {*node};
+    std::vector<AST *> result = {node};
 
     if (this->currToken_->type != TokenType::SEMI) {
         throw_error(
@@ -290,7 +290,7 @@ std::vector<std::reference_wrapper<AST>> Parser::statement_list() {
 
     do {
         this->consume(TokenType::SEMI);
-        result.push_back(*this->statement());
+        result.push_back(this->statement());
     } while (this->currToken_->type == TokenType::SEMI);
 
     if (this->currToken_->type != TokenType::BEND) {
@@ -333,7 +333,7 @@ AST *Parser::additive_expr() {
             this->consume(TokenType::MINUS);
         }
 
-        node = new BinOp(*node, op, *this->multiplicative_expr());
+        node = new BinOp(node, op, this->multiplicative_expr());
         op = this->currToken_;
     }
 
@@ -357,7 +357,7 @@ AST *Parser::multiplicative_expr() {
         } else {
             this->consume(TokenType::REM);
         }
-        node = new BinOp(*node, op, *this->unary_expr());
+        node = new BinOp(node, op, this->unary_expr());
         op = this->currToken_;
     }
 
@@ -372,10 +372,10 @@ AST *Parser::unary_expr() {
     switch (op->type) {
         case TokenType::PLUS:
             this->consume(TokenType::PLUS);
-            return new UnaryOp(*this->primary_expr(), op);
+            return new UnaryOp(this->primary_expr(), op);
         case TokenType::MINUS:
             this->consume(TokenType::MINUS);
-            return new UnaryOp(*this->primary_expr(), op);
+            return new UnaryOp(this->primary_expr(), op);
         default:
             return this->primary_expr();
     }
@@ -391,13 +391,13 @@ AST *Parser::primary_expr() {
     switch (expr->type) {
         case TokenType::INTEGER_LITERAL:
             this->consume(TokenType::INTEGER_LITERAL);
-            return new Num(expr);
+            return new Integer((IntegerToken *)expr);
         case TokenType::DOUBLE_LITERAL:
             this->consume(TokenType::DOUBLE_LITERAL);
-            return new Num(expr);
+            return new Double((DoubleToken *)expr);
         case TokenType::STRING_LITERAL:
             this->consume(TokenType::STRING_LITERAL);
-            return new String(expr);
+            return new String((StringToken *)expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
             AST *node = additive_expr();
@@ -406,7 +406,7 @@ AST *Parser::primary_expr() {
         }
         case TokenType::ID:
             this->consume(TokenType::ID);
-            return new Var(expr);
+            return new Var((StringToken *)expr);
         default:
             throw_error(
                 "Token type not primary expression: " + expr->toString());
@@ -436,24 +436,23 @@ AST *Parser::assignment_expr() {
     this->consume(TokenType::EQ);
 
     AST *right = this->additive_expr();
-    return new Assign(*left, assignmentOp, *right);
+    return new Assign(left, assignmentOp, right);
 }
 
 // declaration = {type_specifier}+ identifier ("=" assignment_expression)? ";"
 AST *Parser::declaration() {
     AST *type = this->type_spec();
 
-    AST *id = new Var(this->currToken_);
+    AST *id = new Var((StringToken *)this->currToken_);
     this->consume(TokenType::ID);
 
     if (this->currToken_->type == TokenType::EQ) {
         this->consume(TokenType::EQ);
 
         AST *rhs = this->assignment_expr();
-        return new VarDecl(*type, *id, *rhs);
+        return new VarDecl(type, id, rhs);
     } else {
-        AST *null = new AST();
-        return new VarDecl(*type, *id, *null);
+        return new VarDecl(type, id, nullptr);
     }
 }
 
@@ -476,7 +475,7 @@ AST *Parser::type_spec() {
             throw_error("Parser found invalid type: " + type->toString());
     }
 
-    return new Type(type);
+    return new Type((StringToken *)type);
 }
 
 void Parser::throw_error(const std::string &message) {

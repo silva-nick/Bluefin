@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <boost/any.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -12,23 +13,27 @@
 
 namespace bluefin {
 
-class Interpreter : public ASTTraverser {
+class Interpreter : public Visitor {
    public:
-    Interpreter(AST *root, std::stringstream &buffer);
-    int interpret();
-    std::string toString() const;
+    Interpreter(std::stringstream &buffer);
+    void interpret(const AST *root);
+    void printVariables() const;
+
+    void visitBinOp(const BinOp *node) const;
+    void visitProgram(const Program *node) const;
+    void visitVar(const Var *node) const;
+    void visitType(const Type *node) const;
+    void visitAssign(const Assign *node) const;
+    void visitString(const String *node) const;
+    void visitUnaryOp(const UnaryOp *node) const;
+    void visitVarDecl(const VarDecl *node) const;
+    void visitDouble(const Double *node) const;
+    void visitInteger(const Integer *node) const;
+    void visitNoOp(const NoOp *node) const;
+    void visitCompound(const Compound *node) const;
 
    private:
-    int visitProgram(const Program &node);
-    int visitCompound(const Compound &node);
-    int visitBinOp(const BinOp &node);
-    int visitUnaryOp(const UnaryOp &node);
-    int visitAssign(const Assign &node);
-    int visitVarDecl(const VarDecl &node);
-    int visitType(const Type &node);
-    int visitVar(const Var &node);
-    int visitNum(const Num &node);
-    int visitString(const String &node);
+    void evaluate(const AST *node) const;
 
     std::unordered_map<std::string, int> global_;
     std::stringstream &buffer_;

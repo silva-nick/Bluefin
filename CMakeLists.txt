@@ -24,6 +24,25 @@ if (CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 endif()
 
+# boost
+set(Boost_NO_SYSTEM_PATHS true)
+set(Boost_USE_STATIC_LIBS OFF CACHE BOOL "use static libraries from Boost")
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF) 
+set(Boost_DEBUG ON)
+find_package(Boost REQUIRED)
+
+if(Boost_FOUND)
+  message(WARNING "BOOST FOUND")
+  include_directories(${Boost_INCLUDE_DIRS})
+  link_libraries(${Boost_LIBRARIES})
+  set(BOOST_LIBS ${Boost_LIBRARIES})
+else()
+  set(BOOST_LIBS )
+  message(WARNING "BOOST NOT FOUND")
+endif()
+
+# add_subdirectory(extern/boost/ EXCLUDE_FROM_ALL)
 
 add_subdirectory(src)
 

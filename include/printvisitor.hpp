@@ -2,7 +2,7 @@
 
 #include <string.h>
 #include <iostream>
-#include "asttest.hpp"
+#include "ast.hpp"
 
 namespace bluefin {
 class PrintVisitor : Visitor {

@@ -2,113 +2,79 @@
 
 namespace bluefin {
 
-AST::AST() {}
+BinOp::BinOp(AST *left, Token *op, AST *right)
+    : left(left), op(op), right(right) {}
 
-AST::AST(Token *value, ASTType nodeType) : token(value), type(nodeType) {}
-
-std::string AST::toString() const {
-    if (this->token != nullptr) {
-        return "token:" + this->token->toString() +
-            ", type:" + ASTTypeStrings[static_cast<int>(this->type)];
-    } else {
-        return std::string("token: ???, type:") +
-            ASTTypeStrings[static_cast<int>(this->type)];
-    }
+boost::any BinOp::accept(Visitor *visitor) const {
+    visitor->visitBinOp(this);
 }
-// end AST
 
-Program::Program() : AST(nullptr, ASTType::Program) {}
+Double::Double(DoubleToken *value) : value(value) {}
 
-std::string Program::toString() const {
-    std::string out;
-
-    for (AST &node : this->blocks) {
-        out.append(node.toString());
-    }
-
-    return out;
+boost::any Double::accept(Visitor *visitor) const {
+    visitor->visitDouble(this);
 }
-// end Program
 
-Compound::Compound() : AST(nullptr, ASTType::Compound) {}
+Program::Program(std::vector<AST *> compounds) : compounds(compounds) {}
 
-std::string Compound::toString() const {
-    std::string out;
-    for (AST &node : this->children) {
-        out.append(node.toString());
-    }
-    return out;
+boost::any Program::accept(Visitor *visitor) const {
+    visitor->visitProgram(this);
 }
-// end Compound
 
-// Assignment
-Assign::Assign(AST &leftVal, Token *op, AST &rightVal)
-    : left(leftVal), right(rightVal), AST(op, ASTType::Assign) {}
+Var::Var(StringToken *varName) : varName(varName) {}
 
-std::string Assign::toString() const {
-    return AST::toString() + ", left:" + this->left.token->toString() +
-        ", right:" + this->right.token->toString();
+boost::any Var::accept(Visitor *visitor) const {
+    visitor->visitVar(this);
 }
-// end Assign
 
-BinOp::BinOp(AST &leftVal, Token *op, AST &rightVal)
-    : left(leftVal), right(rightVal), AST(op, ASTType::BinOp) {}
+Type::Type(StringToken *typeName) : typeName(typeName) {}
 
-std::string BinOp::toString() const {
-    return AST::toString() + ", left:" + this->left.token->toString() +
-        ", right:" + this->right.token->toString();
+boost::any Type::accept(Visitor *visitor) const {
+    visitor->visitType(this);
 }
-// end BinOp
 
-UnaryOp::UnaryOp(AST &node, Token *op)
-    : child(node), AST(op, ASTType::UnaryOp) {}
+Assign::Assign(AST *left, Token *op, AST *right)
+    : left(left), op(op), right(right) {}
 
-std::string UnaryOp::toString() const {
-    return AST::toString() + ", child: " + this->child.toString();
+boost::any Assign::accept(Visitor *visitor) const {
+    visitor->visitAssign(this);
 }
-// end UnaryOp
 
-NoOp::NoOp() : AST(nullptr, ASTType::NoOp) {}
-// end NoOp
+String::String(StringToken *value) : value(value) {}
 
-VarDecl::VarDecl(AST &typeNode, AST &varNode, AST &rhsNode)
-    : typeNode(typeNode),
-      id(varNode),
-      expr(rhsNode),
-      AST(nullptr, ASTType::VarDecl) {}
-
-std::string VarDecl::toString() const {
-    return AST::toString() + ", type_val: " + this->typeNode.toString() +
-        ", id: " + this->id.toString() + ", expr: " + this->expr.toString();
+boost::any String::accept(Visitor *visitor) const {
+    visitor->visitString(this);
 }
-// end VarDecl
 
-Type::Type(Token *token) : AST(token, ASTType::Type) {}
+UnaryOp::UnaryOp(AST *node, Token *op) : node(node), op(op) {}
 
-std::string Type::toString() const {
-    return AST::toString();
+boost::any UnaryOp::accept(Visitor *visitor) const {
+    visitor->visitUnaryOp(this);
 }
-// end Type
 
-Var::Var(Token *token) : AST(token, ASTType::Var) {}
+VarDecl::VarDecl(AST *typeNode, AST *id, AST *expr)
+    : typeNode(typeNode), id(id), expr(expr) {}
 
-std::string Var::toString() const {
-    return AST::toString();
+boost::any VarDecl::accept(Visitor *visitor) const {
+    visitor->visitVarDecl(this);
 }
-// end Var
 
-Num::Num(Token *token) : AST(token, ASTType::Num) {}
+NoOp::NoOp() {}
 
-std::string Num::toString() const {
-    return AST::toString();
+boost::any NoOp::accept(Visitor *visitor) const {
+    visitor->visitNoOp(this);
 }
-// end Num
 
-String::String(Token *token) : AST(token, ASTType::String) {}
+Compound::Compound(std::vector<AST *> statements) : statements(statements) {}
 
-std::string String::toString() const {
-    return AST::toString();
+boost::any Compound::accept(Visitor *visitor) const {
+    visitor->visitCompound(this);
 }
-// end String
+
+Integer::Integer(IntegerToken *value) : value(value) {}
+
+boost::any Integer::accept(Visitor *visitor) const {
+    visitor->visitInteger(this);
+}
 
 } // namespace bluefin
