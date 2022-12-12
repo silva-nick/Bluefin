@@ -1,3 +1,4 @@
+#include "parser.hpp"
 #include "bluefin.hpp"
 
 namespace bluefin {
@@ -251,7 +252,7 @@ AST *Parser::parse() {
 // program = compound_statement
 //         | program compound_statement
 AST *Parser::program() {
-    Program *node = new Program();
+    Program *node = new Program({});
     Token *op = this->currToken_;
 
     while (op->type == TokenType::BSTR) {
@@ -268,10 +269,7 @@ AST *Parser::compound_statement() {
     std::vector<AST *> statements = this->statement_list();
     this->consume(TokenType::BEND);
 
-    Compound *root = new Compound();
-    for (AST *statement : statements) {
-        root->statements.push_back(statement);
-    }
+    Compound *root = new Compound(statements);
 
     return root;
 }

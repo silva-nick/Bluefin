@@ -6,14 +6,14 @@ void PrintVisitor::print(const AST *root) const {
     root->accept((Visitor *)this);
 }
 
-void PrintVisitor::visitBinOp(const BinOp *node) const {
+boost::any PrintVisitor::visitBinOp(const BinOp *node) {
     std::cout << "(" + ((StringToken *)node->op)->value + " ";
     node->left->accept((Visitor *)this);
     node->right->accept((Visitor *)this);
     std::cout << ")";
 }
 
-void PrintVisitor::visitProgram(const Program *node) const {
+boost::any PrintVisitor::visitProgram(const Program *node) {
     std::cout << "(";
     for (const AST *compound : node->compounds) {
         compound->accept((Visitor *)this);
@@ -21,32 +21,32 @@ void PrintVisitor::visitProgram(const Program *node) const {
     std::cout << ")";
 }
 
-void PrintVisitor::visitVar(const Var *node) const {
+boost::any PrintVisitor::visitVar(const Var *node) {
     std::cout << node->varName->value;
 }
 
-void PrintVisitor::visitType(const Type *node) const {
+boost::any PrintVisitor::visitType(const Type *node) {
     std::cout << node->typeName->value;
 }
 
-void PrintVisitor::visitAssign(const Assign *node) const {
+boost::any PrintVisitor::visitAssign(const Assign *node) {
     std::cout << "(" + ((StringToken *)node->op)->value + " ";
     node->left->accept((Visitor *)this);
     node->right->accept((Visitor *)this);
     std::cout << ")";
 }
 
-void PrintVisitor::visitString(const String *node) const {
+boost::any PrintVisitor::visitString(const String *node) {
     std::cout << node->value->value;
 }
 
-void PrintVisitor::visitUnaryOp(const UnaryOp *node) const {
+boost::any PrintVisitor::visitUnaryOp(const UnaryOp *node) {
     std::cout << "(" + ((StringToken *)node->op)->value + " ";
     node->node->accept((Visitor *)this);
     std::cout << ")";
 }
 
-void PrintVisitor::visitVarDecl(const VarDecl *node) const {
+boost::any PrintVisitor::visitVarDecl(const VarDecl *node) {
     std::cout << "(";
     node->typeNode->accept((Visitor *)this);
     node->id->accept((Visitor *)this);
@@ -54,19 +54,19 @@ void PrintVisitor::visitVarDecl(const VarDecl *node) const {
     std::cout << ")";
 }
 
-void PrintVisitor::visitDouble(const Double *node) const {
+boost::any PrintVisitor::visitDouble(const Double *node) {
     std::cout << node->value->value;
 }
 
-void PrintVisitor::visitInteger(const Integer *node) const {
+boost::any PrintVisitor::visitInteger(const Integer *node) {
     std::cout << node->value->value;
 }
 
-void PrintVisitor::visitNoOp(const NoOp *node) const {
+boost::any PrintVisitor::visitNoOp(const NoOp *node) {
     std::cout << " ";
 }
 
-void PrintVisitor::visitCompound(const Compound *node) const {
+boost::any PrintVisitor::visitCompound(const Compound *node) {
     std::cout << "(";
     for (const AST *statement : node->statements) {
         statement->accept((Visitor *)this);

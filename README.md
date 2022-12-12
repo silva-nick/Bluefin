@@ -2,59 +2,6 @@
 
 > A C-style block-based interpreted computer language
 
-#### Grammar (EBNF)
-
-```
-program = compound_statement
-        | program compound_statement
-
-compound_statement = "{" statement_list "}"
-
-statement_list = statement
-               | statement statement_list
-
-statement = compound_statement ";" 
-          | assignment_expression ";" 
-          | white_space
-
-additive_expression = multiplicative_expression 
-                    | additive_expression + multiplicative_expression
-                    | additive_expression - multiplicative_expression
-
-multiplicative_expression = unary_expression
-                          | multiplicative_expression * unary_expression
-                          | multiplicative_expression / unary_expression
-                          | multiplicative_expression // unary_expression
-                          | multiplicative_expression % unary_expression
-
-unary_expression = primary_expression
-                 | unary_operator primary_expression
-
-primary_expression = indentifier
-                   | constant
-                   | "(" expression ")"
-
-expression = assignment_expression
-
-assignment_expression = additive_expression
-                      | unary_expression assignment_operator assignment_expression
-
-identifier = alphabetic character (alphanumeric character)*
-
-declaration = {type_specifier}+ identifier "=" assignment_expression ";"
-
-type_specifier = int
-               | double
-
-constant = integer      
-         | double
-
-assignment_operator = =
-
-unary_operator = +|-
-```
-
-
 #### Building with Docker
 
 **`Run docker container`**
@@ -93,6 +40,77 @@ ctest -C Release
 ```bash
 cmake -S . -B build/Debug -D CMAKE_BUILD_TYPE=Debug
 cmake --build build/Debug --target test
+```
+
+#### Grammar (EBNF)
+
+```
+program = compound_statement
+        | program compound_statement
+
+compound_statement = "{" statement_list "}"
+
+statement_list = statement
+               | statement statement_list
+
+statement = compound_statement line_end
+          | assignment_expression line_end
+          | white_space
+
+logical_expression = relational_expression
+                   | logical_expression || relational_expression
+                   | logical_expression && relational_expression
+
+relational_expression = additive_expression
+                      | relational_expression == additive_expression
+                      | relational_expression != additive_expression
+                      | relational_expression >= additive_expression
+                      | relational_expression <= additive_expression
+                      | relational_expression > additive_expression
+                      | relational_expression < additive_expression
+
+additive_expression = multiplicative_expression 
+                    | additive_expression + multiplicative_expression
+                    | additive_expression - multiplicative_expression
+
+multiplicative_expression = unary_expression
+                          | multiplicative_expression * unary_expression
+                          | multiplicative_expression / unary_expression
+                          | multiplicative_expression // unary_expression
+                          | multiplicative_expression % unary_expression
+
+unary_expression = primary_expression
+                 | unary_operator primary_expression
+
+primary_expression = indentifier
+                   | constant
+                   | "(" expression ")"
+
+expression = assignment_expression
+
+assignment_expression = additive_expression
+                      | unary_expression assignment_operator assignment_expression
+
+identifier = alphabetic character (alphanumeric character)*
+
+declaration = {type_specifier}+ {mode_specifier}+ identifier assignment_operator assignment_expression line_end
+
+type_specifier = int
+               | double
+               | string
+
+mode_specifier = ?
+               | ~
+
+constant = integer      
+         | double
+         | "string"
+
+assignment_operator = =
+
+unary_operator = +|-
+
+line_end = ";"|"\n"
 ```
 
 #### Credit:

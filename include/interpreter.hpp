@@ -7,7 +7,6 @@
 #include <string>
 #include <unordered_map>
 #include "ast.hpp"
-#include "asttraverser.hpp"
 #include "symboltable.hpp"
 #include "token.hpp"
 
@@ -19,21 +18,22 @@ class Interpreter : public Visitor {
     void interpret(const AST *root);
     void printVariables() const;
 
-    void visitBinOp(const BinOp *node) const;
-    void visitProgram(const Program *node) const;
-    void visitVar(const Var *node) const;
-    void visitType(const Type *node) const;
-    void visitAssign(const Assign *node) const;
-    void visitString(const String *node) const;
-    void visitUnaryOp(const UnaryOp *node) const;
-    void visitVarDecl(const VarDecl *node) const;
-    void visitDouble(const Double *node) const;
-    void visitInteger(const Integer *node) const;
-    void visitNoOp(const NoOp *node) const;
-    void visitCompound(const Compound *node) const;
+    boost::any visitBinOp(const BinOp *node) const;
+    boost::any visitProgram(const Program *node) const;
+    boost::any visitVar(const Var *node) const;
+    boost::any visitType(const Type *node) const;
+    boost::any visitAssign(const Assign *node) const;
+    boost::any visitString(const String *node) const;
+    boost::any visitUnaryOp(const UnaryOp *node) const;
+    boost::any visitVarDecl(const VarDecl *node) const;
+    boost::any visitDouble(const Double *node) const;
+    boost::any visitInteger(const Integer *node) const;
+    boost::any visitNoOp(const NoOp *node) const;
+    boost::any visitCompound(const Compound *node) const;
 
    private:
-    void evaluate(const AST *node) const;
+    boost::any evaluate(const AST *node) const;
+    void throw_error(Token *token, const std::string &message) const;
 
     std::unordered_map<std::string, int> global_;
     std::stringstream &buffer_;

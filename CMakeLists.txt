@@ -42,8 +42,6 @@ else()
   message(WARNING "BOOST NOT FOUND")
 endif()
 
-# add_subdirectory(extern/boost/ EXCLUDE_FROM_ALL)
-
 add_subdirectory(src)
 
 # gtest

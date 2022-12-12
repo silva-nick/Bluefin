@@ -41,8 +41,9 @@ class Visitor;
 // Tree node parent class
 class AST {
    public:
-    AST();
+    AST(ASTType type);
     virtual boost::any accept(Visitor *visitor) const = 0;
+    ASTType type;
 
    private:
 };
@@ -50,7 +51,7 @@ class AST {
 // BinOp node
 class BinOp : public AST {
    public:
-    BinOp(AST *left, Token *op, AST *right);
+    BinOp(ASTType type, AST *left, Token *op, AST *right);
     AST *left;
     Token *op;
     AST *right;
@@ -63,7 +64,7 @@ class BinOp : public AST {
 // Double node
 class Double : public AST {
    public:
-    Double(DoubleToken *value);
+    Double(ASTType type, DoubleToken *value);
     DoubleToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -74,7 +75,7 @@ class Double : public AST {
 // Program node
 class Program : public AST {
    public:
-    Program(std::vector<AST *> compounds);
+    Program(ASTType type, std::vector<AST *> compounds);
     std::vector<AST *> compounds;
 
     boost::any accept(Visitor *visitor) const;
@@ -85,7 +86,7 @@ class Program : public AST {
 // Var node
 class Var : public AST {
    public:
-    Var(StringToken *varName);
+    Var(ASTType type, StringToken *varName);
     StringToken *varName;
 
     boost::any accept(Visitor *visitor) const;
@@ -96,7 +97,7 @@ class Var : public AST {
 // Type node
 class Type : public AST {
    public:
-    Type(StringToken *typeName);
+    Type(ASTType type, StringToken *typeName);
     StringToken *typeName;
 
     boost::any accept(Visitor *visitor) const;
@@ -107,7 +108,7 @@ class Type : public AST {
 // Assign node
 class Assign : public AST {
    public:
-    Assign(AST *left, Token *op, AST *right);
+    Assign(ASTType type, AST *left, Token *op, AST *right);
     AST *left;
     Token *op;
     AST *right;
@@ -120,7 +121,7 @@ class Assign : public AST {
 // String node
 class String : public AST {
    public:
-    String(StringToken *value);
+    String(ASTType type, StringToken *value);
     StringToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -131,7 +132,7 @@ class String : public AST {
 // UnaryOp node
 class UnaryOp : public AST {
    public:
-    UnaryOp(AST *node, Token *op);
+    UnaryOp(ASTType type, AST *node, Token *op);
     AST *node;
     Token *op;
 
@@ -143,7 +144,7 @@ class UnaryOp : public AST {
 // VarDecl node
 class VarDecl : public AST {
    public:
-    VarDecl(AST *typeNode, AST *id, AST *expr);
+    VarDecl(ASTType type, AST *typeNode, AST *id, AST *expr);
     AST *typeNode;
     AST *id;
     AST *expr;
@@ -156,7 +157,7 @@ class VarDecl : public AST {
 // NoOp node
 class NoOp : public AST {
    public:
-    NoOp();
+    NoOp(ASTType type);
 
     boost::any accept(Visitor *visitor) const;
 
@@ -166,7 +167,7 @@ class NoOp : public AST {
 // Compound node
 class Compound : public AST {
    public:
-    Compound(std::vector<AST *> statements);
+    Compound(ASTType type, std::vector<AST *> statements);
     std::vector<AST *> statements;
 
     boost::any accept(Visitor *visitor) const;
@@ -177,7 +178,7 @@ class Compound : public AST {
 // Integer node
 class Integer : public AST {
    public:
-    Integer(IntegerToken *value);
+    Integer(ASTType type, IntegerToken *value);
     IntegerToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -188,18 +189,18 @@ class Integer : public AST {
 // Abstract visitor class
 class Visitor {
    public:
-    virtual boost::any visitBinOp(const BinOp *node) const = 0;
-    virtual boost::any visitDouble(const Double *node) const = 0;
-    virtual boost::any visitProgram(const Program *node) const = 0;
-    virtual boost::any visitVar(const Var *node) const = 0;
-    virtual boost::any visitType(const Type *node) const = 0;
-    virtual boost::any visitAssign(const Assign *node) const = 0;
-    virtual boost::any visitString(const String *node) const = 0;
-    virtual boost::any visitUnaryOp(const UnaryOp *node) const = 0;
-    virtual boost::any visitVarDecl(const VarDecl *node) const = 0;
-    virtual boost::any visitNoOp(const NoOp *node) const = 0;
-    virtual boost::any visitCompound(const Compound *node) const = 0;
-    virtual boost::any visitInteger(const Integer *node) const = 0;
+    virtual boost::any visitBinOp(const BinOp *node) = 0;
+    virtual boost::any visitDouble(const Double *node) = 0;
+    virtual boost::any visitProgram(const Program *node) = 0;
+    virtual boost::any visitVar(const Var *node) = 0;
+    virtual boost::any visitType(const Type *node) = 0;
+    virtual boost::any visitAssign(const Assign *node) = 0;
+    virtual boost::any visitString(const String *node) = 0;
+    virtual boost::any visitUnaryOp(const UnaryOp *node) = 0;
+    virtual boost::any visitVarDecl(const VarDecl *node) = 0;
+    virtual boost::any visitNoOp(const NoOp *node) = 0;
+    virtual boost::any visitCompound(const Compound *node) = 0;
+    virtual boost::any visitInteger(const Integer *node) = 0;
 };
 
 } // namespace bluefin

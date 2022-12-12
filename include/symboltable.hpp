@@ -6,7 +6,6 @@
 #include <string>
 #include <unordered_map>
 #include "ast.hpp"
-#include "asttraverser.hpp"
 
 namespace bluefin {
 
@@ -35,31 +34,33 @@ class SymbolTable {
     SymbolTable();
     std::string toString() const;
     void define(const Symbol &symbol);
-    Symbol lookup(const std::string &name);
+    Symbol lookup(const StringToken *name, std::stringstream &buffer) const;
 
    private:
     void initBuiltins();
     std::unordered_map<std::string, Symbol> symbols_;
 };
 
-class SymbolTableBuilder : public ASTTraverser {
+class SymbolTableBuilder : Visitor {
    public:
-    SymbolTableBuilder(AST *root, std::stringstream &buffer);
-    void build();
+    SymbolTableBuilder(std::stringstream &buffer);
+    void build(const AST *root);
     std::string toString() const;
 
-   private:
-    int visitProgram(const Program &node);
-    int visitCompound(const Compound &node);
-    int visitBinOp(const BinOp &node);
-    int visitUnaryOp(const UnaryOp &node);
-    int visitAssign(const Assign &node);
-    int visitVarDecl(const VarDecl &node);
-    int visitType(const Type &node);
-    int visitVar(const Var &node);
-    int visitNum(const Num &node);
-    int visitString(const String &node);
+    boost::any visitBinOp(const BinOp *node);
+    boost::any visitProgram(const Program *node);
+    boost::any visitVar(const Var *node);
+    boost::any visitType(const Type *node);
+    boost::any visitAssign(const Assign *node);
+    boost::any visitString(const String *node);
+    boost::any visitUnaryOp(const UnaryOp *node);
+    boost::any visitVarDecl(const VarDecl *node);
+    boost::any visitDouble(const Double *node);
+    boost::any visitInteger(const Integer *node);
+    boost::any visitNoOp(const NoOp *node);
+    boost::any visitCompound(const Compound *node);
 
+   private:
     SymbolTable symbols_;
     std::stringstream &buffer_;
 };
