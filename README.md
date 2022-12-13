@@ -57,6 +57,11 @@ statement = compound_statement line_end
           | assignment_expression line_end
           | white_space
 
+expression = assignment_expression
+
+assignment_expression = logical_expression
+                      | unary_expression assignment_operator assignment_expression
+
 logical_expression = relational_expression
                    | logical_expression || relational_expression
                    | logical_expression && relational_expression
@@ -85,11 +90,6 @@ unary_expression = primary_expression
 primary_expression = indentifier
                    | constant
                    | "(" expression ")"
-
-expression = assignment_expression
-
-assignment_expression = additive_expression
-                      | unary_expression assignment_operator assignment_expression
 
 identifier = alphabetic character (alphanumeric character)*
 

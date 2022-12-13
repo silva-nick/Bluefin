@@ -51,7 +51,6 @@ Symbol SymbolTable::lookup(const StringToken *name, std::stringstream &buffer)
 
     if (this->symbols_.count(name->value) == 0) {
         error(name->line, "Variable doesn't exist: " + name->value, buffer);
-        printf("Im not a dumbt bitch i all about this shit fuck that shit \n\n\n\n\n");
         return this->symbols_.at("error");
     } else {
         return this->symbols_.at(name->value);

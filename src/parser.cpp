@@ -318,6 +318,76 @@ AST *Parser::statement() {
     }
 }
 
+// assignment_expression = additive_expression
+//                       | unary_expression assignment_operator
+//                       assignment_expression
+AST *Parser::assignment_expr() {
+    // This currently is a hacky fix
+    // need to find a way for it to parse int x = a+2;
+    // i.e. an additive expression;
+    Token *lhs = this->currToken_;
+    if (lhs->type == TokenType::INTEGER_LITERAL ||
+        lhs->type == TokenType::DOUBLE_LITERAL ||
+        lhs->type == TokenType::STRING_LITERAL) {
+        return additive_expr();
+    }
+
+    AST *left = this->unary_expr();
+
+    Token *assignmentOp = this->currToken_;
+    if (currToken_->type == TokenType::SEMI) {
+        return left;
+    }
+
+    this->consume(TokenType::EQ);
+
+    AST *right = this->additive_expr();
+    return new Assign(left, assignmentOp, right);
+}
+
+// logical_expression = relational_expression
+//                    | logical_expression || relational_expression
+//                    | logical_expression && relational_expression
+AST *Parser::logical_expr() {
+    AST *node = equality_expr();
+    Token *op = this->currToken_;
+
+    while (op->type == TokenType::OR || op->type == TokenType::AND) {
+        this->consume(op->type);
+        node = new BinOp(node, op, this->equality_expr());
+    }
+
+    return node;
+}
+
+// equality_expr = comparison_expr ( ( != | == ) comparison_expr )* ;
+AST *Parser::equality_expr() {
+    AST *node = comparison_expr();
+    Token *op = this->currToken_;
+
+    while (op->type == TokenType::EQ || op->type == TokenType::NOT_EQ) {
+        this->consume(op->type);
+        node = new BinOp(node, op, this->comparison_expr());
+    }
+
+    return node;
+}
+
+// comparison_expr = additive_expr ( ( > | >= | < | <= ) additive_expr )*;
+AST *Parser::comparison_expr() {
+    AST *node = additive_expr();
+    Token *op = this->currToken_;
+
+    while (op->type == TokenType::GREATER ||
+           op->type == TokenType::GREATER_EQ || op->type == TokenType::LESS ||
+           op->type == TokenType::LESS_EQ) {
+        this->consume(op->type);
+        node = new BinOp(node, op, this->additive_expr());
+    }
+
+    return node;
+}
+
 // additive_expression : multiplicative((+|-)multiplicative)*
 AST *Parser::additive_expr() {
     AST *node = this->multiplicative_expr();
@@ -325,11 +395,7 @@ AST *Parser::additive_expr() {
 
     while (op->type == TokenType::PLUS || op->type == TokenType::MINUS) {
         printf("op     :%s\n", op->toString().c_str());
-        if (op->type == TokenType::PLUS) {
-            this->consume(TokenType::PLUS);
-        } else {
-            this->consume(TokenType::MINUS);
-        }
+        this->consume(op->type);
 
         node = new BinOp(node, op, this->multiplicative_expr());
         op = this->currToken_;
@@ -398,10 +464,19 @@ AST *Parser::primary_expr() {
             return new String((StringToken *)expr);
         case TokenType::PSTR: {
             this->consume(TokenType::PSTR);
-            AST *node = additive_expr();
+            AST *node = equality_expr();
             this->consume(TokenType::PEND);
             return node;
         }
+        case TokenType::TRUE:
+            this->consume(TokenType::TRUE);
+            return new String((StringToken *)expr);
+        case TokenType::FALSE:
+            this->consume(TokenType::FALSE);
+            return new String((StringToken *)expr);
+        case TokenType::NONE:
+            this->consume(TokenType::NONE);
+            return new String((StringToken *)expr);
         case TokenType::ID:
             this->consume(TokenType::ID);
             return new Var((StringToken *)expr);
@@ -409,33 +484,6 @@ AST *Parser::primary_expr() {
             throw_error(
                 "Token type not primary expression: " + expr->toString());
     }
-}
-
-// assignment_expression = additive_expression
-//                       | unary_expression assignment_operator
-//                       assignment_expression
-AST *Parser::assignment_expr() {
-    // This currently is a hacky fix
-    // need to find a way for it to parse int x = a+2;
-    // i.e. an additive expression;
-    Token *lhs = this->currToken_;
-    if (lhs->type == TokenType::INTEGER_LITERAL ||
-        lhs->type == TokenType::DOUBLE_LITERAL ||
-        lhs->type == TokenType::STRING_LITERAL) {
-        return additive_expr();
-    }
-
-    AST *left = this->unary_expr();
-
-    Token *assignmentOp = this->currToken_;
-    if (currToken_->type == TokenType::SEMI) {
-        return left;
-    }
-
-    this->consume(TokenType::EQ);
-
-    AST *right = this->additive_expr();
-    return new Assign(left, assignmentOp, right);
 }
 
 // declaration = {type_specifier}+ identifier ("=" assignment_expression)? ";"

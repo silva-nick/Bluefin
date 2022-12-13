@@ -70,11 +70,14 @@ class Parser {
     AST *compound_statement();
     std::vector<AST *> statement_list();
     AST *statement();
+    AST *assignment_expr();
+    AST *logical_expr();
+    AST *equality_expr();
+    AST *comparison_expr();
     AST *additive_expr();
     AST *multiplicative_expr();
     AST *unary_expr();
     AST *primary_expr();
-    AST *assignment_expr();
     AST *declaration();
     AST *type_spec();
 
