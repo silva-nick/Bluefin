@@ -29,30 +29,13 @@ ast_hpp.write(
 
 namespace bluefin {
 
-""")
-
-# write enums
-ast_hpp.write("enum class ASTType : int {\n");
-for k in ast_data:
-    ast_hpp.write("    {},\n".format(k))
-ast_hpp.write("};\n")
-
-ast_hpp.write("static constexpr const char *const ASTTypeStrings[{}] = {{\n".format(len(ast_data)))
-for k in ast_data:
-    ast_hpp.write("    \"{}\",\n".format(k))
-ast_hpp.write("};\n")
-
-# write root class
-ast_hpp.write(
-"""class Visitor;
+class Visitor;
 
 // Tree node parent class
 class AST {
    public:
-    AST(ASTType type);
+    virtual ~AST() {}
     virtual boost::any accept(Visitor *visitor) const = 0;
-    ASTType type;
-
    private:
 };
 """)
@@ -61,14 +44,12 @@ for k,v in ast_data.items():
     field_def = ";\n".join(v.split(", "))
     if field_def is not "":
         field_def += ";\n"
-    if v is not "":
-        v = "," + v
 
     ast_hpp.write("""
     // {} node
     class {} : public AST {{
     public:
-        {}(ASTType type{});
+        {}({});
         {}
 
         boost::any accept(Visitor *visitor) const;
@@ -86,7 +67,13 @@ public:""")
 for k in ast_data:
     ast_hpp.write("virtual boost::any visit{}(const {} *node) = 0;\n".format(k, k))
     
-ast_hpp.write("\n};\n")
+ast_hpp.write("\n};")
+
+ast_hpp.write("""
+
+StringToken *asStringToken(const AST *node);
+
+""")
 
 ast_hpp.write("\n} // namespace bluefin")
 
@@ -100,25 +87,29 @@ ast_cpp.write(
 
 namespace bluefin {
 
-AST::AST(ASTType type) : type(type) {}
-
 """)
 
 for k,v in ast_data.items():
     field_init = ", ".join(map(lambda x: "{}({})".format(x.replace(",", ""), x.replace(",", "")), re.findall("[a-zA-Z0-9_]+,|[a-zA-Z0-9_]+$", v)))
     if len(field_init) > 0:
-        field_init = "," + field_init
-    if len(v) > 0:
-        v = "," + v
+        field_init = ":" + field_init
 
     ast_cpp.write("""
-    {}::{}(ASTType type {}) : AST(ASTType::{}) {} {{}}
+    {}::{}({}) {} {{}}
 
     boost::any {}::accept(Visitor *visitor) const{{
-        visitor->visit{}(this);
+        return visitor->visit{}(this);
     }}
 
-    """.format(k, k, v, k, field_init, k, k))
+    """.format(k, k, v, field_init, k, k))
+
+ast_cpp.write("""
+
+StringToken *asStringToken(const AST *node) {
+    return (StringToken *)((String *)node)->value;
+}
+
+""")
 
 ast_cpp.write("\n} // namespace bluefin")
 

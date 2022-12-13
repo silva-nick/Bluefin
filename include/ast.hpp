@@ -8,42 +8,13 @@
 
 namespace bluefin {
 
-enum class ASTType : int {
-    BinOp,
-    Double,
-    Program,
-    Var,
-    Type,
-    Assign,
-    String,
-    UnaryOp,
-    VarDecl,
-    NoOp,
-    Compound,
-    Integer,
-};
-static constexpr const char *const ASTTypeStrings[12] = {
-    "BinOp",
-    "Double",
-    "Program",
-    "Var",
-    "Type",
-    "Assign",
-    "String",
-    "UnaryOp",
-    "VarDecl",
-    "NoOp",
-    "Compound",
-    "Integer",
-};
 class Visitor;
 
 // Tree node parent class
 class AST {
    public:
-    AST(ASTType type);
+    virtual ~AST() {}
     virtual boost::any accept(Visitor *visitor) const = 0;
-    ASTType type;
 
    private:
 };
@@ -51,7 +22,7 @@ class AST {
 // BinOp node
 class BinOp : public AST {
    public:
-    BinOp(ASTType type, AST *left, Token *op, AST *right);
+    BinOp(AST *left, Token *op, AST *right);
     AST *left;
     Token *op;
     AST *right;
@@ -64,7 +35,7 @@ class BinOp : public AST {
 // Double node
 class Double : public AST {
    public:
-    Double(ASTType type, DoubleToken *value);
+    Double(DoubleToken *value);
     DoubleToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -75,7 +46,7 @@ class Double : public AST {
 // Program node
 class Program : public AST {
    public:
-    Program(ASTType type, std::vector<AST *> compounds);
+    Program(std::vector<AST *> compounds);
     std::vector<AST *> compounds;
 
     boost::any accept(Visitor *visitor) const;
@@ -86,7 +57,7 @@ class Program : public AST {
 // Var node
 class Var : public AST {
    public:
-    Var(ASTType type, StringToken *varName);
+    Var(StringToken *varName);
     StringToken *varName;
 
     boost::any accept(Visitor *visitor) const;
@@ -97,7 +68,7 @@ class Var : public AST {
 // Type node
 class Type : public AST {
    public:
-    Type(ASTType type, StringToken *typeName);
+    Type(StringToken *typeName);
     StringToken *typeName;
 
     boost::any accept(Visitor *visitor) const;
@@ -108,7 +79,7 @@ class Type : public AST {
 // Assign node
 class Assign : public AST {
    public:
-    Assign(ASTType type, AST *left, Token *op, AST *right);
+    Assign(AST *left, Token *op, AST *right);
     AST *left;
     Token *op;
     AST *right;
@@ -121,7 +92,7 @@ class Assign : public AST {
 // String node
 class String : public AST {
    public:
-    String(ASTType type, StringToken *value);
+    String(StringToken *value);
     StringToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -132,7 +103,7 @@ class String : public AST {
 // UnaryOp node
 class UnaryOp : public AST {
    public:
-    UnaryOp(ASTType type, AST *node, Token *op);
+    UnaryOp(AST *node, Token *op);
     AST *node;
     Token *op;
 
@@ -144,7 +115,7 @@ class UnaryOp : public AST {
 // VarDecl node
 class VarDecl : public AST {
    public:
-    VarDecl(ASTType type, AST *typeNode, AST *id, AST *expr);
+    VarDecl(AST *typeNode, AST *id, AST *expr);
     AST *typeNode;
     AST *id;
     AST *expr;
@@ -157,7 +128,7 @@ class VarDecl : public AST {
 // NoOp node
 class NoOp : public AST {
    public:
-    NoOp(ASTType type);
+    NoOp();
 
     boost::any accept(Visitor *visitor) const;
 
@@ -167,7 +138,7 @@ class NoOp : public AST {
 // Compound node
 class Compound : public AST {
    public:
-    Compound(ASTType type, std::vector<AST *> statements);
+    Compound(std::vector<AST *> statements);
     std::vector<AST *> statements;
 
     boost::any accept(Visitor *visitor) const;
@@ -178,7 +149,7 @@ class Compound : public AST {
 // Integer node
 class Integer : public AST {
    public:
-    Integer(ASTType type, IntegerToken *value);
+    Integer(IntegerToken *value);
     IntegerToken *value;
 
     boost::any accept(Visitor *visitor) const;
@@ -202,5 +173,7 @@ class Visitor {
     virtual boost::any visitCompound(const Compound *node) = 0;
     virtual boost::any visitInteger(const Integer *node) = 0;
 };
+
+StringToken *asStringToken(const AST *node);
 
 } // namespace bluefin

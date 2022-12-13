@@ -5,24 +5,26 @@
 #include "ast.hpp"
 
 namespace bluefin {
-class PrintVisitor : Visitor {
-   public:
-    PrintVisitor();
-    ~PrintVisitor();
 
-    void print(const AST *root) const;
-    boost::any visitBinOp(const BinOp *node);
-    boost::any visitProgram(const Program *node);
-    boost::any visitVar(const Var *node);
-    boost::any visitType(const Type *node);
-    boost::any visitAssign(const Assign *node);
-    boost::any visitString(const String *node);
-    boost::any visitUnaryOp(const UnaryOp *node);
-    boost::any visitVarDecl(const VarDecl *node);
-    boost::any visitDouble(const Double *node);
-    boost::any visitInteger(const Integer *node);
-    boost::any visitNoOp(const NoOp *node);
-    boost::any visitCompound(const Compound *node);
+class PrintVisitor : public Visitor {
+   public:
+    PrintVisitor() = default;
+    ~PrintVisitor() = default;
+
+    void print(const AST *root);
+
+    boost::any visitBinOp(const BinOp *node) override;
+    boost::any visitProgram(const Program *node) override;
+    boost::any visitVar(const Var *node) override;
+    boost::any visitType(const Type *node) override;
+    boost::any visitAssign(const Assign *node) override;
+    boost::any visitString(const String *node) override;
+    boost::any visitUnaryOp(const UnaryOp *node) override;
+    boost::any visitVarDecl(const VarDecl *node) override;
+    boost::any visitDouble(const Double *node) override;
+    boost::any visitInteger(const Integer *node) override;
+    boost::any visitNoOp(const NoOp *node) override;
+    boost::any visitCompound(const Compound *node) override;
 
    private:
 };

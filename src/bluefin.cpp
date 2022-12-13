@@ -21,13 +21,18 @@ int run(const std::string &expr, std::stringstream &buffer) {
         return ERROR_STATUS;
     }
 
-    SymbolTableBuilder symbols(root, buffer);
+    PrintVisitor printer = PrintVisitor();
+    printer.print(root);
+
+    SymbolTableBuilder symbols(buffer);
+    symbols.build(root);
     if (ERROR_STATUS) {
         return ERROR_STATUS;
     }
 
-    Interpreter interpreter(root, buffer);
-    interpreter.interpret();
+    Interpreter interpreter(buffer);
+    interpreter.interpret(root);
+    interpreter.printVariables();
 
     return ERROR_STATUS;
 }

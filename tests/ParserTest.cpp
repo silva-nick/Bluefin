@@ -9,7 +9,7 @@ TEST(Parser, String) {
 }
 
 TEST(Parser, GoodToken) {
-    EXPECT_EQ(captureErrors("{string x = \"test\";}"), "");
+    EXPECT_EQ(captureErrors("{string x = \"test\" + \"test\";}"), "");
 }
 
 TEST(Parser, BadToken) {

@@ -7,6 +7,8 @@
 #include "ast.hpp"
 #include "interpreter.hpp"
 #include "parser.hpp"
+#include "printvisitor.hpp"
+#include "symboltable.hpp"
 
 namespace bluefin {
 

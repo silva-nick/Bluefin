@@ -51,6 +51,7 @@ Symbol SymbolTable::lookup(const StringToken *name, std::stringstream &buffer)
 
     if (this->symbols_.count(name->value) == 0) {
         error(name->line, "Variable doesn't exist: " + name->value, buffer);
+        printf("Im not a dumbt bitch i all about this shit fuck that shit \n\n\n\n\n");
         return this->symbols_.at("error");
     } else {
         return this->symbols_.at(name->value);
@@ -76,56 +77,74 @@ boost::any SymbolTableBuilder::visitProgram(const Program *node) {
     for (const AST *compound : node->compounds) {
         compound->accept((Visitor *)this);
     }
+    return boost::any();
 }
 
 boost::any SymbolTableBuilder::visitCompound(const Compound *node) {
     for (AST *statement : node->statements) {
         statement->accept((Visitor *)this);
     }
+    return boost::any();
 }
 
 boost::any SymbolTableBuilder::visitBinOp(const BinOp *node) {
     node->left->accept((Visitor *)this);
     node->right->accept((Visitor *)this);
-    ;
+
+    return boost::any();
 }
 
 boost::any SymbolTableBuilder::visitUnaryOp(const UnaryOp *node) {
     node->node->accept((Visitor *)this);
+    return boost::any();
 }
 
 boost::any SymbolTableBuilder::visitAssign(const Assign *node) {
-    // needs to be more robust
-    String *varNode = (String *)((UnaryOp *)node->left)->node;
-    symbols_.lookup(
-        (StringToken *)(varNode->value),
-        this->buffer_); // Throws if var hasn't been defined
+    // Throws if var hasn't been defined
+    symbols_.lookup(asStringToken(node->left), this->buffer_);
+
     // TODO: check if assigning to correct type
     node->right->accept((Visitor *)this);
+    return boost::any();
 }
 
 boost::any SymbolTableBuilder::visitVarDecl(const VarDecl *node) {
     Symbol typeSymbol =
-        this->symbols_.lookup((StringToken *)node->typeNode, this->buffer_);
+        this->symbols_.lookup(asStringToken(node->typeNode), this->buffer_);
 
-    VarSymbol varSymbol =
-        VarSymbol(((StringToken *)node->id)->value, typeSymbol);
+    VarSymbol varSymbol = VarSymbol(asStringToken(node->id)->value, typeSymbol);
+
+    node->expr->accept((Visitor *)this);
 
     // TODO: check if assigning to correct type
     this->symbols_.define(varSymbol);
+    return boost::any();
 }
 
-boost::any SymbolTableBuilder::visitType(const Type *node) {}
+boost::any SymbolTableBuilder::visitType(const Type *node) {
+    return boost::any();
+}
 
 boost::any SymbolTableBuilder::visitVar(const Var *node) {
     this->symbols_.lookup((StringToken *)node->varName, this->buffer_);
+    return boost::any();
 }
 
-boost::any SymbolTableBuilder::visitInteger(const Integer *node) {}
+boost::any SymbolTableBuilder::visitNoOp(const NoOp *node) {
+    return boost::any();
+}
 
-boost::any SymbolTableBuilder::visitDouble(const Double *node) {}
+boost::any SymbolTableBuilder::visitInteger(const Integer *node) {
+    return boost::any();
+}
 
-boost::any SymbolTableBuilder::visitString(const String *node) {}
+boost::any SymbolTableBuilder::visitDouble(const Double *node) {
+    return boost::any();
+}
+
+boost::any SymbolTableBuilder::visitString(const String *node) {
+    return boost::any();
+}
 // end SymbolTableBuilder
 
 } // namespace bluefin

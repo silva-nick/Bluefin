@@ -344,7 +344,7 @@ AST *Parser::multiplicative_expr() {
     Token *op = this->currToken_;
 
     while (op->type == TokenType::MULT || op->type == TokenType::DIV ||
-           op->type == TokenType::REM) {
+           op->type == TokenType::REM || op->type == TokenType::INT_DIV) {
         printf("op     :%s\n", op->toString().c_str());
         if (op->type == TokenType::MULT) {
             this->consume(TokenType::MULT);
@@ -420,7 +420,8 @@ AST *Parser::assignment_expr() {
     // i.e. an additive expression;
     Token *lhs = this->currToken_;
     if (lhs->type == TokenType::INTEGER_LITERAL ||
-        lhs->type == TokenType::DOUBLE_LITERAL) {
+        lhs->type == TokenType::DOUBLE_LITERAL ||
+        lhs->type == TokenType::STRING_LITERAL) {
         return additive_expr();
     }
 
@@ -456,6 +457,7 @@ AST *Parser::declaration() {
 
 // type_specifier = int
 //                | double
+//                | string
 AST *Parser::type_spec() {
     Token *type = this->currToken_;
 

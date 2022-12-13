@@ -1,9 +1,7 @@
 #pragma once
 
-#include <assert.h>
 #include <boost/any.hpp>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include "ast.hpp"
@@ -18,24 +16,25 @@ class Interpreter : public Visitor {
     void interpret(const AST *root);
     void printVariables() const;
 
-    boost::any visitBinOp(const BinOp *node) const;
-    boost::any visitProgram(const Program *node) const;
-    boost::any visitVar(const Var *node) const;
-    boost::any visitType(const Type *node) const;
-    boost::any visitAssign(const Assign *node) const;
-    boost::any visitString(const String *node) const;
-    boost::any visitUnaryOp(const UnaryOp *node) const;
-    boost::any visitVarDecl(const VarDecl *node) const;
-    boost::any visitDouble(const Double *node) const;
-    boost::any visitInteger(const Integer *node) const;
-    boost::any visitNoOp(const NoOp *node) const;
-    boost::any visitCompound(const Compound *node) const;
+    boost::any visitBinOp(const BinOp *node);
+    boost::any visitProgram(const Program *node);
+    boost::any visitVar(const Var *node);
+    boost::any visitType(const Type *node);
+    boost::any visitAssign(const Assign *node);
+    boost::any visitString(const String *node);
+    boost::any visitUnaryOp(const UnaryOp *node);
+    boost::any visitVarDecl(const VarDecl *node);
+    boost::any visitDouble(const Double *node);
+    boost::any visitInteger(const Integer *node);
+    boost::any visitNoOp(const NoOp *node);
+    boost::any visitCompound(const Compound *node);
 
    private:
-    boost::any evaluate(const AST *node) const;
+    boost::any evaluate(const AST *node);
+    bool isEqual(const boost::any &left, const boost::any &right) const;
     void throw_error(Token *token, const std::string &message) const;
 
-    std::unordered_map<std::string, int> global_;
+    std::unordered_map<std::string, boost::any> global_;
     std::stringstream &buffer_;
 };
 

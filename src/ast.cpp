@@ -2,89 +2,83 @@
 
 namespace bluefin {
 
-AST::AST(ASTType type) : type(type) {}
-
-BinOp::BinOp(ASTType type, AST *left, Token *op, AST *right)
-    : AST(ASTType::BinOp), left(left), op(op), right(right) {}
+BinOp::BinOp(AST *left, Token *op, AST *right)
+    : left(left), op(op), right(right) {}
 
 boost::any BinOp::accept(Visitor *visitor) const {
-    visitor->visitBinOp(this);
+    return visitor->visitBinOp(this);
 }
 
-Double::Double(ASTType type, DoubleToken *value)
-    : AST(ASTType::Double), value(value) {}
+Double::Double(DoubleToken *value) : value(value) {}
 
 boost::any Double::accept(Visitor *visitor) const {
-    visitor->visitDouble(this);
+    return visitor->visitDouble(this);
 }
 
-Program::Program(ASTType type, std::vector<AST *> compounds)
-    : AST(ASTType::Program), compounds(compounds) {}
+Program::Program(std::vector<AST *> compounds) : compounds(compounds) {}
 
 boost::any Program::accept(Visitor *visitor) const {
-    visitor->visitProgram(this);
+    return visitor->visitProgram(this);
 }
 
-Var::Var(ASTType type, StringToken *varName)
-    : AST(ASTType::Var), varName(varName) {}
+Var::Var(StringToken *varName) : varName(varName) {}
 
 boost::any Var::accept(Visitor *visitor) const {
-    visitor->visitVar(this);
+    return visitor->visitVar(this);
 }
 
-Type::Type(ASTType type, StringToken *typeName)
-    : AST(ASTType::Type), typeName(typeName) {}
+Type::Type(StringToken *typeName) : typeName(typeName) {}
 
 boost::any Type::accept(Visitor *visitor) const {
-    visitor->visitType(this);
+    return visitor->visitType(this);
 }
 
-Assign::Assign(ASTType type, AST *left, Token *op, AST *right)
-    : AST(ASTType::Assign), left(left), op(op), right(right) {}
+Assign::Assign(AST *left, Token *op, AST *right)
+    : left(left), op(op), right(right) {}
 
 boost::any Assign::accept(Visitor *visitor) const {
-    visitor->visitAssign(this);
+    return visitor->visitAssign(this);
 }
 
-String::String(ASTType type, StringToken *value)
-    : AST(ASTType::String), value(value) {}
+String::String(StringToken *value) : value(value) {}
 
 boost::any String::accept(Visitor *visitor) const {
-    visitor->visitString(this);
+    return visitor->visitString(this);
 }
 
-UnaryOp::UnaryOp(ASTType type, AST *node, Token *op)
-    : AST(ASTType::UnaryOp), node(node), op(op) {}
+UnaryOp::UnaryOp(AST *node, Token *op) : node(node), op(op) {}
 
 boost::any UnaryOp::accept(Visitor *visitor) const {
-    visitor->visitUnaryOp(this);
+    return visitor->visitUnaryOp(this);
 }
 
-VarDecl::VarDecl(ASTType type, AST *typeNode, AST *id, AST *expr)
-    : AST(ASTType::VarDecl), typeNode(typeNode), id(id), expr(expr) {}
+VarDecl::VarDecl(AST *typeNode, AST *id, AST *expr)
+    : typeNode(typeNode), id(id), expr(expr) {}
 
 boost::any VarDecl::accept(Visitor *visitor) const {
-    visitor->visitVarDecl(this);
+    return visitor->visitVarDecl(this);
 }
 
-NoOp::NoOp(ASTType type) : AST(ASTType::NoOp) {}
+NoOp::NoOp() {}
 
 boost::any NoOp::accept(Visitor *visitor) const {
-    visitor->visitNoOp(this);
+    return visitor->visitNoOp(this);
 }
 
-Compound::Compound(ASTType type, std::vector<AST *> statements)
-    : AST(ASTType::Compound), statements(statements) {}
+Compound::Compound(std::vector<AST *> statements) : statements(statements) {}
 
 boost::any Compound::accept(Visitor *visitor) const {
-    visitor->visitCompound(this);
+    return visitor->visitCompound(this);
 }
 
-Integer::Integer(ASTType type, IntegerToken *value)
-    : AST(ASTType::Integer), value(value) {}
+Integer::Integer(IntegerToken *value) : value(value) {}
 
 boost::any Integer::accept(Visitor *visitor) const {
-    visitor->visitInteger(this);
+    return visitor->visitInteger(this);
+}
+
+StringToken *asStringToken(const AST *node) {
+    return (StringToken *)((String *)node)->value;
 }
 
 } // namespace bluefin

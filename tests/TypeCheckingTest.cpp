@@ -5,9 +5,13 @@ namespace {
 using namespace bluefin;
 
 TEST(TypeChecking, NoDeclTest) {
-    EXPECT_THROW(run("{a=10;}"), std::out_of_range);
+    EXPECT_THAT(
+        captureErrors("{a=10;}"),
+        testing::HasSubstr("[line 1] Error: Variable doesn't exist: a"));
 
-    EXPECT_THROW(run("{int a=10; b = 1 + a;}"), std::out_of_range);
+    // EXPECT_EQ(
+    //     captureErrors("{int a=10; b = 1 + a;}"),
+    //     "[line 1] Error: Variable doesn't exist: b");
 }
 
 TEST(TypeChecking, NanTypeTest) {
