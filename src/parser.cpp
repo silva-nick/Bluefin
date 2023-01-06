@@ -230,6 +230,7 @@ void Parser::consume(TokenType type) {
     if (type != this->currToken_->type) {
         throw_error(
             "Parser consume failed on token " + this->currToken_->toString());
+        throw new ParseError();
     }
 
     this->currToken_ = this->lexer_.nextToken();
@@ -237,7 +238,16 @@ void Parser::consume(TokenType type) {
 
 // parse : program
 AST *Parser::parse() {
-    AST *node = this->program();
+    AST *node;
+
+    printf("parsing started\n");
+    try {
+        node = this->program();
+    } catch (ParseError *e) {
+        printf("cocksucker2.0\n\n");
+        return nullptr;
+    }
+    printf("parsing half done\n");
 
     if (this->currToken_->type != TokenType::END) {
         throw_error(
@@ -480,9 +490,11 @@ AST *Parser::primary_expr() {
         case TokenType::ID:
             this->consume(TokenType::ID);
             return new Var((StringToken *)expr);
-        default:
+        default: {
             throw_error(
                 "Token type not primary expression: " + expr->toString());
+            throw new ParseError();
+        }
     }
 }
 
@@ -519,11 +531,47 @@ AST *Parser::type_spec() {
         case TokenType::STRING:
             this->consume(TokenType::STRING);
             break;
-        default:
+        default: {
             throw_error("Parser found invalid type: " + type->toString());
+            throw ParseError();
+        }
     }
 
     return new Type((StringToken *)type);
+}
+
+void Parser::synchronize() {
+    Token *token = this->currToken_;
+
+    while (token->type != TokenType::END) {
+        switch (token->type) {
+            case TokenType::CLASS:
+            case TokenType::FUN:
+            case TokenType::BSTR:
+            case TokenType::ID:
+            case TokenType::FOR:
+            case TokenType::IF:
+            case TokenType::WHILE:
+            case TokenType::RETURN:
+            case TokenType::INTEGER:
+            case TokenType::DOUBLE:
+            case TokenType::STRING:
+                return;
+            default:
+                break;
+        }
+        this->consume(token->type);
+    }
+
+    return;
+}
+
+void Parser::throw_error(const Token &token, const std::string &message) {
+    if (token.type == TokenType::END) {
+        throw_error(" at end" + message);
+    } else {
+        throw_error(" at '" + token.toString() + "'" + message);
+    }
 }
 
 void Parser::throw_error(const std::string &message) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include "ast.hpp"
 #include "token.hpp"
 
@@ -65,7 +66,6 @@ class Parser {
     AST *parse();
 
    private:
-    void consume(TokenType type);
     AST *program();
     AST *compound_statement();
     std::vector<AST *> statement_list();
@@ -81,11 +81,17 @@ class Parser {
     AST *declaration();
     AST *type_spec();
 
+    void consume(TokenType type);
+    void synchronize();    
+
+    void throw_error(const Token &token, const std::string &message);
     void throw_error(const std::string &message);
 
     Lexer lexer_;
     Token *currToken_;
     std::stringstream &buffer_;
 };
+
+class ParseError : public std::exception {};
 
 } // namespace bluefin
